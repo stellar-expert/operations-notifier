@@ -14,16 +14,21 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 - Does not require Stellar Core or Horizon node deployment.
 - Notifications are signed with an ED25519 secret key to protect the recipient from spoofing.
 
-#### So... Where can I use it?
+### So... Where can I use it?
 
-- **Payment processing**. Never miss a payment, even if a user decided to pay one week later, or you have some troubles with your server.
-- **Anchors and ICOs**. Implement complex scenarios for your assets and track all user accounts. Track all operations involving your asset to gather statistics or calculate dividends.
-- **Trading platforms**. Observe trading activity, aggregate market data, gather statistics, build market-making applications.
-- **Monitoring tools**. Keep an eye on specific accounts or your favorite assets. Without pooling and other inefficient techniques.
-- **Inflation pools**. Subscribe to inflation operation and distribute rewards when the subscription was triggered.
+- **Payment processing**.\
+Never miss a payment, even if a user decided to pay one week later, or you have some troubles with your server.
+- **Anchors and ICOs**.\
+Implement complex scenarios for your assets and track all user accounts. Track all operations involving your asset to gather statistics or calculate dividends.
+- **Trading platforms**.\
+Observe trading activity, aggregate market data, gather statistics, build market-making applications.
+- **Monitoring tools**.\
+Keep an eye on specific accounts or your favorite assets. Without pooling and other inefficient techniques.
+- **Inflation pools**.\
+Subscribe to inflation operation and distribute rewards when the subscription was triggered.
 - And more...  
 
-> Note: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
+> Note :warning: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
 
 ## System requirements
 
@@ -31,17 +36,17 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 
 Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance (like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance. The latter option is preferable for production cases. Nevertheless, public Horizon instances supported by SDF work just fine as well.
 
-#### NodeJS
+#### NodeJS 8.6.0+
 
 The service requires NodeJS 8.6.0 or later. 
 
-#### MongoDB
+#### MongoDB 3.2+
 
 Notifier stores operational information and notification queues in the database. MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead. There are plans to add other database providers in the nearest future.
 
 #### Supported platforms
 
-Linux, Windows, MacOS. 
+Linux, Windows, MacOS.  
 Effectively all platforms where you can run NodeJS and MongoDB.    
 
 ## Installation
@@ -62,7 +67,7 @@ npm i
 Ensure that MongoDB is running. 
 Download it [here](https://www.mongodb.com/download-center?jmp=nav#community) in case if it has not been installed yet.
 
-Edit the configuration in `server.config.json` (see [Configuration](#Configuration)).
+Edit the configuration in `server.config.json` (see [Configuration](#configuration) section).
 
 Start the service.
 
@@ -74,48 +79,48 @@ npm run start
 
 All configuration settings are located in `server.config.json` file.
 
-- **db** 
-Connection string for MongoDB database.
+- **db**\
+Connection string for MongoDB database.\
 Default value: `"mongodb://127.0.0.1:27017/stellar-notifier"` 
-- **apiPort** 
-API exposed by the notifier.
+- **apiPort**\
+API exposed by the notifier.\
 Default value: `4021` 
-- **authorization**
-Server authorization mode. 
-`disabled` mode turns off the authentication (recommended for local installations).
-`token` authentication expects `access_token` with user requests (see [API Authentication](#Authentication)).
+- **authorization**\
+Server authorization mode.\
+`disabled` mode turns off the authentication (recommended for local installations).\
+`token` authentication expects `access_token` with user requests (see [API Authentication](#Authentication)).\
 Default value: `"disabled"`.
-- **horizon** 
-Horizon server URL.
+- **horizon**\
+Horizon server URL.\
 Default value: `"https://horizon.stellar.org"`.
-- **reactionResponseTimeout** 
-Maximum expected HTTP response timeout (in seconds). If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed. 
+- **reactionResponseTimeout**\
+Maximum expected HTTP response timeout (in seconds). If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
 Default value: `10`.
-- **adminAuthenticationToken**
-API authentication token for admin user (for `"authentication"="token"` mode). Leave empty to use a randomly generated token.
+- **adminAuthenticationToken**\
+API authentication token for admin user (for `"authentication"="token"` mode). Leave empty to use a randomly generated token.\
 Default Value: `""`.
-- **stellarNetwork** 
-Name of the predefined Stellar network (`PUBLIC` or `TESTNET`). Ignore it for a custom private network.
+- **stellarNetwork**\
+Name of the predefined Stellar network (`PUBLIC` or `TESTNET`). Ignore it for a custom private network.\
 Default value: `PUBLIC`.
-- **stellarNetworkPassphrase** 
-(Only for private networks). A private network passphrase.
+- **stellarNetworkPassphrase**\
+(Only for private networks). A private network passphrase.\
 Default value: `""`. 
-- **signatureSecret** 
-Secret key used to sign the notifications. Do not forget to set your own secret. It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). Do not use the default value or a secret key from the funded account. 
+- **signatureSecret**\
+Secret key used to sign the notifications. Do not forget to set your own secret. It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). Do not use the default value or a secret key from the funded account.\
 Default value: `""`.
-- **maxActiveSubscriptions** 
-Maximum simultaneously tracked subscriptions.  
+- **maxActiveSubscriptions**\
+Maximum simultaneously tracked subscriptions.\
 Default value: `10000`.
-- **maxNotificationsCacheSize** 
-Controls the size of the recent notifications cache. This value should be equal or greater than `maxActiveSubscriptions`.   
+- **maxNotificationsCacheSize**\
+Controls the size of the recent notifications cache. This value should be equal or greater than `maxActiveSubscriptions`.\
 Default value: `10000`.
-- **notificationConcurrency** 
-Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests). 
+- **notificationConcurrency**\
+Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
 Default value: `100`.
 
 ## API
 
-#### Authentication
+### Authentication
 
 With `authorization` config parameter set to `disabled`, there is no need to bother about authentication. 
 But it only works in cases where the service is not exposed to public networks (i.e. behind the firewall).
@@ -123,7 +128,7 @@ But it only works in cases where the service is not exposed to public networks (
 To enable token-based authentication, set `authorization` to `token`. In this mode, any interaction with protected API will require an authentication token. 
 The token can be passed as a POST parameter (`access_token=<your_token>`), GET query parameter (`?access_token=<your_token>`), or Authorization header (`Authorization: Token <your_token>`).
 
-#### Create subscription
+### Create subscription
 
 ```
 POST /api/subscription
@@ -162,7 +167,7 @@ Response example:
 
 The `id` value from response can be used to delete the subscription.
 
-#### Remove subscription
+### Remove subscription
 
 ```
 DELETE /api/subscription/:subscription_id
@@ -174,7 +179,7 @@ The endpoint returns 200 in case of successful unsubscription, and an error code
 
 - **subscription_id** [*string*] (mandatory) - the subscription id to remove
 
-#### Get all active user subscriptions
+### Get all active user subscriptions
 
 ```
 GET /api/subscription
@@ -259,7 +264,7 @@ Request headers:
 
 ## Testing
 
-Well, there are almost no tests at this point. I'm working on adding comprehensive unit and integration tests. 
+Well, there are almost no tests at this point. I'm working on adding comprehensive unit and integration test siutes. 
 
 Will be grateful for any help with it.
 
