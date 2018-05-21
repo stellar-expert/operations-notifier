@@ -7,10 +7,10 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 
 - Highly configurable.
 - Supports operations filtering by account, asset, transaction memo, and operation type. 
-- Guaranteed delivery (even if the notification recipient is down for some time).
+- Guaranteed delivery, even if the notification recipient or the Notifier itself is down for some time.
 - Support public and private Stellar networks.
 - High performance (tested with thousands of subscriptions).
-- Reliable tracking (tracking is resumed from the same transaction after restart).
+- Reliable tracking and consistency (tracking is resumed from the same transaction after restart).
 - Does not require Stellar Core or Horizon node deployment.
 - Notifications are signed with an ED25519 secret key to protect the recipient from spoofing.
 
@@ -19,7 +19,8 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 - **Payment processing**.\
 Never miss a payment, even if a user decided to pay one week later, or you have some troubles with your server.
 - **Anchors and ICOs**.\
-Implement complex scenarios for your assets and track all user accounts. Track all operations involving your asset to gather statistics or calculate dividends.
+Implement complex scenarios for your assets and track all user accounts. 
+Track all operations involving your asset to gather statistics or calculate dividends.
 - **Trading platforms**.\
 Observe trading activity, aggregate market data, gather statistics, build market-making applications.
 - **Monitoring tools**.\
@@ -28,21 +29,26 @@ Keep an eye on specific accounts or your favorite assets. Without pooling and ot
 Subscribe to inflation operation and distribute rewards when the subscription was triggered.
 - And more...  
 
-> Note :warning: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
+> :warning: Note: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
 
 ## System requirements
 
 #### Stellar Horizon server
 
-Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance (like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance. The latter option is preferable for production cases. Nevertheless, public Horizon instances supported by SDF work just fine as well.
+Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance 
+(like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance. 
+The latter option is preferable for production cases. 
+Nevertheless, public Horizon instances supported by SDF work just fine as well.
 
 #### NodeJS 8.6.0+
 
 The service requires NodeJS 8.6.0 or later. 
 
-#### MongoDB 3.2+
+#### (Optional) MongoDB 3.2+ or other storage provider
 
-Notifier stores operational information and notification queues in the database. MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead. There are plans to add other database providers in the nearest future.
+For the production deployment all notification queues are stored in the database.
+
+MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead. 
 
 #### Supported platforms
 
@@ -51,25 +57,26 @@ Effectively all platforms where you can run NodeJS and MongoDB.
 
 ## Installation
 
-Clone the repository.
+1\. Clone the repository.
 
 ```
 git clone https://github.com/orbitlens/stellar-notifier
 ```
 
-Install required NPM packages.
+2\. Install required NPM packages.
 
 ```
 cd stellar-notifier
 npm i
 ```
 
+3\. (For production deployments)
 Ensure that MongoDB is running. 
 Download it [here](https://www.mongodb.com/download-center?jmp=nav#community) in case if it has not been installed yet.
 
-Edit the configuration in `server.config.json` (see [Configuration](#configuration) section).
+4\. Set configuration parameters in `app.config.json` (see [Configuration](#configuration) section).
 
-Start the service.
+5\. Start the service.
 
 ```
 npm run start
@@ -77,11 +84,14 @@ npm run start
 
 ## Configuration
 
-All configuration settings are located in `server.config.json` file.
+All configuration parameters are located in `app.config.json` file.
 
-- **db**\
-Connection string for MongoDB database.\
-Default value: `"mongodb://127.0.0.1:27017/stellar-notifier"` 
+- **storageProvider**\
+Storage provider for persistence layer.\
+Default value: `"memory"` 
+- **storageConnectionString**\
+Connection string for storage provider.\
+Default value: `""` 
 - **apiPort**\
 API exposed by the notifier.\
 Default value: `4021` 
@@ -94,29 +104,47 @@ Default value: `"disabled"`.
 Horizon server URL.\
 Default value: `"https://horizon.stellar.org"`.
 - **reactionResponseTimeout**\
-Maximum expected HTTP response timeout (in seconds). If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
+Maximum expected HTTP response timeout (in seconds). 
+If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
 Default value: `10`.
 - **adminAuthenticationToken**\
-API authentication token for admin user (for `"authentication"="token"` mode). Leave empty to use a randomly generated token.\
+API authentication token for admin user (for `"authentication"="token"` mode). 
+Leave empty to use a randomly generated token.\
 Default Value: `""`.
-- **stellarNetwork**\
-Name of the predefined Stellar network (`PUBLIC` or `TESTNET`). Ignore it for a custom private network.\
-Default value: `PUBLIC`.
-- **stellarNetworkPassphrase**\
-(Only for private networks). A private network passphrase.\
-Default value: `""`. 
 - **signatureSecret**\
-Secret key used to sign the notifications. Do not forget to set your own secret. It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). Do not use the default value or a secret key from the funded account.\
+Secret key used to sign the notifications. Do not forget to set your own secret. 
+It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). 
+Do not use the default value or a secret key from the funded account.\
 Default value: `""`.
 - **maxActiveSubscriptions**\
 Maximum simultaneously tracked subscriptions.\
 Default value: `10000`.
-- **maxNotificationsCacheSize**\
-Controls the size of the recent notifications cache. This value should be equal or greater than `maxActiveSubscriptions`.\
-Default value: `10000`.
 - **notificationConcurrency**\
 Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
 Default value: `100`.
+
+#### Storage providers
+
+Notifier can store notification queues and operational information in the database or in memory. 
+The latter case is suited only for testing or cases without guaranteed delivery. 
+
+There are two built-in storage providers: `mongodb` and `memory`.
+Other storage providers can be easily connected through the standard interface. 
+
+#### Config example:
+
+    {
+      "authorization": "disabled",
+      "storageProvider": "mongodb",
+      "storageConnectionString": "mongodb://127.0.0.1:27017/stellar-notifier",
+      "apiPort": 4021,
+      "horizon": "https://horizon.stellar.org",
+      "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",
+      "maxActiveSubscriptions": 10000,
+      "notificationConcurrency": 100,
+      "reactionResponseTimeout": 10,
+      "adminAuthenticationToken": "98c12910bf35c79a800e9ea893a93b078ea92fc7a26ca76c0cd2f6003464d781"
+    }
 
 ## API
 
@@ -224,17 +252,13 @@ Notifications are sent as JSON-encoded POST requests with the following format:
 
 ```
 {
-  "id": "5ae88ef89a9e5d4a589cf27d-75783894779064326",
-  "subscription": "5ae88ef89a9e5d4a589cf27d",
-  "network": {
-    "name": "PUBLIC",
-    "networkPassphrase": "Public Global Stellar Network ; September 2015"
-  },
+  "id": "5ae88ef89a9e5d4a589cf27d-757838947790641a6",
+  "subscription": "5ae88ef89a9e5d4a589cf29d",
   "type": "operation",
   "created": "2018-05-01T16:45:37.529Z",
   "sent": "2018-05-01T16:45:37.991Z",
   "operation": {
-    "id": "75783894779064326",
+    "id": "7578389477906432555",
     "type_i": 1,
     "type": "payment",
     "destination": "GC3UA6FHLDD7IFG3MXA7JCNC2YPW62AKMKV5H2CEEBWCLUNJR3OFJSNV",
@@ -244,14 +268,18 @@ Notifications are sent as JSON-encoded POST requests with the following format:
       "asset_type": "1"
     },
     "amount": "0.0012",
-    "account": "GCUZSLQYXDXSOXC4DURSK3AJNAQEBDSYVGYE7BC7IXGTS32MJBW35QOU",
-    "transaction_details": {
-      "hash": "7580614b4703704496173f578092a0b6a56e5906d7ad5f83e529af14bab2cdda",
-      "fee": 600,
-      "source": "GCUZSLQYXDXSOXC4DURSK3AJNAQEBDSYVGYE7BC7IXGTS32MJBW35QOU",
-      "paging_token": "75783894779064320",
-      "source_account_sequence": "71960377453211203",
-      "created_at": "2018-05-01T16:45:37Z"
+    "account": "GCUZSLQYXDXSOXC4DURSK3AJNAQEBDSYVGYE7BC7IXGTS32MJBW35QOU"
+  },
+  "transaction": {
+    "hash": "7580614b4703704496173f578092a0b6a56e5906d7ad5f83e529af14bab2cdd3",
+    "fee": 600,
+    "source": "GCUZSLQYXDXSOXC4DURSK3AJNAQEBDSYVGYE7BC7IXGTS32MJBW35QOU",
+    "paging_token": "757838947790643264",
+    "source_account_sequence": "7196037745321120376",
+    "created_at": "2018-05-01T16:45:37Z",
+    "memo": { 
+      "type": "text", 
+      "value": "105683157"
     }
   }
 }
@@ -278,16 +306,15 @@ npm run test
 
 The following features will be added in the nearest future:
 
-- Response validation for flooding attacks prevention.
+- Response validation for the flooding attacks prevention.
 - Implement other notification channels: email, messengers, etc.
 - Include not only transaction info, but also all operation effects.
 - Implement a multi-account support and basic acquiring to turn the service into a SAAS platform, so anyone could offer public SAAS notification services for some fee.
 - Add the ability to use environment variables instead of the configuration file.
-- Improve object caching and overall performance.
 - Comprehensive comments and test suites.
 - Bulletproof errors processing and graceful SIGTERM handling.
 
-Have a suggestion? Want to submit a bug or feature request? Visit the [issue tracker]((https://github.com/orbitlens/stellar-notifier)).  
+Have a suggestion? Want to submit a bug or feature request? Visit the [issue tracker](https://github.com/orbitlens/stellar-notifier).  
 
 ## Special Thanks and Acknowledgements
 

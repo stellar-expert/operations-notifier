@@ -1,60 +1,32 @@
 const axios = require('axios'),
-    mongoose = require('mongoose'),
-    Notification = mongoose.model('Notification'),
-    config = require('../server.config'),
-    {networkName, networkPassphrase} = require('../logic/stellar-connector'),
+    config = require('../app.config'),
     {sign} = require('../util/signing'),
-    pkgInfo = require('../package')
+    pkgInfo = require('../package'),
+    storage = require('./storage')
 
-//TODO: finish recent notifications cache implementation
-/*class NotificationsGroup {
-    constructor(subscription){
-        this.subscription = subscription.id.toString()
-        this.notifications = new Map()
+/**
+ * Remove item from cache
+ * @param cache - array with items
+ * @param item - item to evict
+ * @returns {object} cache instance
+ */
+function evict(cache, item) {
+    if (cache instanceof Array) {
+        let pos = cache.indexOf(item)
+        if (pos >= 0) {
+            cache.splice(pos, 1)
+        }
     }
-
-    add(notification){
-        notifications
+    if (cache instanceof Set) {
+        cache.delete(item)
     }
+    return item
 }
 
-const notificationsCache = {
-    allNotificationsMap: new Map(),
-    subscriptionsMap: new Map(),
-    maxSize: config.maxNotificationsCacheSize || 1000,
-    get(key) {
-        //try to get the notification from cache
-        let notification = this.allNotificationsMap.get(key)
-        if (notification) return Promise.resolve(notification)
-        //cache miss - load from DB
-        return Notification.findById(key)
-    },
-    getSubscriptionsGroup(){
-
-    },
-    add(notification) {
-        if (!notification) return
-        if (this.allNotificationsMap.size >= this.maxSize) {
-            this.evict()
-        }
-        this.allNotificationsMap.set(notification.id, notification)
-    },
-    remove(notification) {
-        if (!notification) return
-        this.allNotificationsMap.delete(typeof notification === 'string' ? notification : notification.id)
-    },
-    evict() {
-        //evict the oldest cache entry
-        const record = this.allNotificationsMap.entries().next().value
-        if (record) {
-            this.allNotificationsMap.delete(record[0])
-        }
-    }
-}*/
 class Notifier {
     constructor(observer) {
         this.observer = observer
-        this.inProgress = new Map()
+        this.inProgress = new Set()
     }
 
     startNewNotifierThread() {
@@ -81,10 +53,11 @@ class Notifier {
     }
 
     runSubscriptionNotifierThread(subscription) {
-        if (this.inProgress.has(subscription.id)) return
-        this.inProgress.set(subscription.id, subscription)
-        //load notifications for subscription
-        return Notification.findOne({subscription: subscription.id})
+        if (this.inProgress.has(subscription.id)) return //the subscription is being processed right now
+        //each subscription can be processed by a single notification thread at a time
+        this.inProgress.add(subscription.id)
+
+        return this.getNextNotification(subscription)
             .then(notification => {
                 if (!notification) {
                     subscription.processed = true //no more notifications available, set "processed" flag
@@ -99,42 +72,74 @@ class Notifier {
             })
     }
 
+    getNextNotification(subscription) {
+        //try to get a notification from cache
+        if (subscription.notifications && subscription.notifications.size) {
+            return Promise.resolve(subscription.notifications.values().next().value)
+        }
+        //cache miss - load next notification from db
+        return storage.fetchNextNotification(subscription.id)
+    }
+
     createNotifications(notifications) {
         //TODO: check method performance under maximum load
-//notificationsCache.add(notification)
+        //notificationsCache.add(notification)
         if (!notifications.length) return Promise.resolve()
 
-        return Notification.insertMany(notifications, {ordered: false})
-            .then(() => {
-                this.startNewNotifierThread()
-                return notifications.length //return inserted notifications count
-            })
-            .catch(err => {
-                //TODO: test duplicate primary key handling
-                //if the error thrown is a BulkWriteError with error codes 11000, than it's ok
-                //https://docs.mongodb.com/manual/reference/method/db.collection.insertMany/#unordered-inserts
-                console.error(err)
-                this.startNewNotifierThread()
-                if (err.code === 11000) {
-                    return err.result.nInserted //return inserted notifications count
-                }
-                return 0
-            })
+        return storage.createNotifications(notifications)
+    }
 
+    markAsProcessed(notification, subscription) {
+        evict(notification.subscriptions, subscription.id)
+        return storage.markAsProcessed(notification, subscription)
+            .then(() => {
+                //evict notification from local cache
+                evict(subscription.notifications, notification)
+
+                subscription.delivery_failures = 0
+                subscription.sent++
+                subscription.ignoreUntil = undefined
+                console.log(`POST to ${subscription.reaction_url}. Notification: ${notification.id}.`)
+            })
+    }
+
+    handleProcessingError(err, notification, subscription) {
+        let retries = ++subscription.delivery_failures,
+            pause = retries * retries * retries
+
+        subscription.ignoreUntil = new Date(new Date().getTime() + pause * 1000 + Math.floor(Math.random() * 100))
+        if (err.config) { //error handled by axios
+            if (err.response) {
+                console.error(`POST to ${err.config.url} failed with status ${err.response.status}. Retry in ${pause} seconds. Notification ${notification.id}.`)
+            } else if (err.code === 'ECONNABORTED') {
+                console.error(`POST to ${err.config.url} failed. Timeout exceeded. Retry in ${pause} seconds. Notification ${notification.id}.`)
+            } else if (err.code === 'ECONNREFUSED') {
+                console.error(`POST to ${err.config.url} failed. Host refused to connect. Retry in ${pause} seconds. Notification ${notification.id}.`)
+            } else {
+                console.error(`POST to ${err.config.url} failed. Host is unreachable. Retry in ${pause} seconds. Notification ${notification.id}.`)
+            }
+        }
+        else {
+            console.error(err)
+        }
+        setTimeout(() => this.startNewNotifierThread(), pause * 1000 + 10) //schedule a retry
     }
 
     sendNotification(notification, subscription) {
+        //unwrap transaction details
+        const payload = {...notification.payload},
+            transaction = payload.transaction_details
+        delete payload.transaction_details
+
+        //prepare data
         const data = {
             id: notification.id,
-            subscription: notification.subscription.toString(),
-            network: {
-                name: networkName,
-                networkPassphrase
-            },
+            subscription: notification.subscription,
             type: 'operation',
             created: notification.created,
             sent: new Date(),
-            operation: notification.payload
+            operation: payload,
+            transaction
         }
 
         return axios({
@@ -147,42 +152,19 @@ class Notifier {
                 'Content-Type': 'application/json',
                 'X-Requested-With': `StellarNotifier/${pkgInfo.version} (+${pkgInfo.homepage})`,
                 'X-Request-ED25519-Signature': sign(data),
-                'X-Subscription': subscription.id.toString()
+                'X-Subscription': subscription.id
             }
         })
-            .then((response) => {
-                return notification.remove()
-                    .then(() => {
-                        subscription.delivery_failures = 0
-                        subscription.sent++
-                        subscription.ignoreUntil = undefined
-                        console.log(`POST to ${subscription.reaction_url}. Notification: ${notification.id}.`)
-                    })
-            })
-            .catch((err) => {
-                let retries = ++subscription.delivery_failures,
-                    pause = retries * retries * retries
-
-                subscription.ignoreUntil = new Date(new Date().getTime() + pause * 1000)
-                if (err.config) { //error handled by axios
-                    if (err.response) {
-                        console.error(`POST to ${err.config.url} failed with status ${err.response.status}. Retry in ${pause} seconds. Notification ${notification.id}.`)
-                    } else if (err.code === 'ECONNABORTED') {
-                        console.error(`POST to ${err.config.url} failed. Timeout exceeded. Retry in ${pause} seconds. Notification ${notification.id}.`)
-                    } else if (err.code === 'ECONNREFUSED') {
-                        console.error(`POST to ${err.config.url} failed. Host refused to connect. Retry in ${pause} seconds. Notification ${notification.id}.`)
-                    } else {
-                        console.error(`POST to ${err.config.url} failed. Host is unreachable. Retry in ${pause} seconds. Notification ${notification.id}.`)
-                    }
-                }
-                else {
-                    console.error(err)
-                }
-                setTimeout(() => this.startNewNotifierThread(), pause * 1000 + 10) //schedule a retry
-            })
+        //TODO: verify the response to prevent third-party resources spoofing
+            .then(() => this.markAsProcessed(notification, subscription))
+            .catch(err => this.handleProcessingError(err, notification, subscription))
             .then(() => {
                 subscription.updated = new Date()
-                subscription.save()
+                return storage.saveSubscription(subscription)
+            })
+            .catch(err => {
+                console.error(`Failed to update subscription ${subscription.id}`)
+                console.error(err)
             })
     }
 }

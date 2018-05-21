@@ -1,9 +1,8 @@
-const mongoose = require('mongoose'),
-    Subscription = mongoose.model('Subscription'),
-    TxIngestionCursor = mongoose.model('TxIngestionCursor'),
-    errors = require('../util/errors'),
+const errors = require('../util/errors'),
     TransactionWatcher = require('./transaction-watcher'),
-    Notifier = require('./notifier')
+    Notifier = require('./notifier'),
+    storage = require('./storage'),
+    config = require('../app.config')
 
 /**
  *
@@ -21,7 +20,7 @@ class Observer {
         // return the loading promise if the loading is already in progress
         if (this.__loadingSubscriptionPromise) return this.__loadingSubscriptionPromise
         //load only active subscriptions
-        this.__loadingSubscriptionPromise = Subscription.find({status: 0})
+        this.__loadingSubscriptionPromise = storage.fetchSubscriptions()
             .then(fetched => {
                 this.subscriptions = fetched || []
                 return this.subscriptions
@@ -29,11 +28,20 @@ class Observer {
         return this.__loadingSubscriptionPromise
     }
 
+    getActiveSubscriptionsCount() {
+        return this.subscriptions.length
+    }
+
     subscribe(subscriptionParams, user) {
         //TODO: prevent duplicate subscriptions by checking subscription hash (fields "account", "asset_type" etc.)
         //https://www.npmjs.com/package/farmhash
         return this.loadSubscriptions()
-            .then(() => Subscription.create(subscriptionParams, user))
+            .then(() => {
+                if (this.getActiveSubscriptionsCount() >= config.maxActiveSubscriptions) {
+                    return Promise.reject(errors.forbidden('Max active subscriptions exceeded.'))
+                }
+                return storage.createSubscription(subscriptionParams, user)
+            })
             .then(newSubscription => {
                 this.subscriptions.push(newSubscription)
                 return newSubscription
@@ -68,7 +76,7 @@ class Observer {
                 let subscription = this.subscriptions.find(s => s.id == subscriptionId)
                 if (subscription) return subscription
                 //try to load the subscription from db (it may be disabled or expired)
-                return Subscription.findById(subscriptionId)
+                return storage.fetchSubscription(subscriptionId)
             })
     }
 

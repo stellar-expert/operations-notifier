@@ -1,7 +1,7 @@
-const mongoose = require('mongoose'),
-    TxIngestionCursor = mongoose.model('TxIngestionCursor'),
-    {horizon} = require('./stellar-connector'),
-    {parseTransaction} = require('./stream-processor')
+const {horizon} = require('./stellar-connector'),
+    {parseTransaction} = require('./stream-processor'),
+    {matches} = require('../util/subscription-match-helper'),
+    storage = require('./storage')
 
 /**
  * Tracks transactions using event streaming from Horizon server
@@ -27,41 +27,64 @@ class TransactionWatcher {
      * Pick the entry from the queue and process it
      */
     processQueue() {
-        //TODO: check method performance under maximum load
+        //TODO: check method performance under the maximum load
         if (!this.observer.subscriptions || !this.observer.observing || !this.queue.length || this.processing) return
         this.processing = true
         const rawTx = this.queue.pop(),
             tx = parseTransaction(rawTx),
-            notifications = []
+            notifications = [],
+            relevantSubscriptions = new Set()
 
         if (!tx) { //failed to parse transaction
             this.processing = false
             return this.processQueue()
         }
-
-        //iterate through subscriptions
-        this.observer.subscriptions.forEach(subscription => tx.operations.forEach(operation => {
-            //TODO: ignore subscriptions that were added AFTER the tx ledger close date to prevent false notifications on fast-forwarding
-            //find subscriptions that match an operation
-            if (subscription.matches(operation)) {
-                //create a notification
-                let notification = {
-                    _id: subscription.id + '-' + operation.id,
-                    subscription: subscription._id,
-                    payload: operation
-                }
-                notifications.push(notification)
-                //mark subscription as ready to be processed
-                subscription.processed = false
+        for (const operation of tx.operations) {
+            //create a notification
+            let notification = {
+                payload: operation,
+                subscriptions: []
             }
-        }))
+            //iterate through subscriptions
+            for (const subscription of this.observer.subscriptions) {
+                //TODO: ignore subscriptions that were added AFTER the tx ledger close date to prevent false notifications on fast-forwarding
+                //find subscriptions that match an operation
+                if (matches(subscription, operation)) {
+                    //associate a subscription with current notification
+                    notification.subscriptions.push(subscription.id)
+                    //will use it once notifications are persisted
+                    relevantSubscriptions.add(subscription)
+                    //mark subscription as ready to be processed
+                    subscription.processed = false
+                }
+            }
+
+            //process a notification if at least one match was found
+            if (notification.subscriptions.length) {
+                notifications.push(notification)
+            }
+        }
 
         this.observer.notifier.createNotifications(notifications)
-            .then(() => {
-                TxIngestionCursor.updateLastIngestedTx(tx.details.paging_token)
+            .then(notifications => {
+                storage.updateLastIngestedTx(tx.details.paging_token)
                     .catch(err => console.error(err))
+                //iterate through processed subscriptions
+                for (let subscription of relevantSubscriptions) {
+                    //cache notifications directly inside the subscription
+                    if (!subscription.notifications) {
+                        subscription.notifications = new Set()
+                    }
+                    for (let notification of notifications) {
+                        if (notification.subscriptions.some(s => s == subscription.id)) {
+                            subscription.notifications.add(notification)
+                        }
+                    }
+                }
+
                 this.processing = false
-                this.processQueue()
+                setImmediate(() => this.processQueue())
+                this.observer.notifier.startNewNotifierThread()
             })
     }
 
@@ -70,7 +93,7 @@ class TransactionWatcher {
      */
     watch() {
         if (this.releaseStream) return
-        TxIngestionCursor.getLastIngestedTx()
+        storage.getLastIngestedTx()
             .then(cursor => {
                 this.cursor = cursor
                 this.trackTransactions()
@@ -87,7 +110,7 @@ class TransactionWatcher {
         //check previously set cursor
         horizon
             .transactions()
-            .cursor(cursor)
+            .cursor(this.cursor)
             .order('asc')
             .limit(200)
             .call()

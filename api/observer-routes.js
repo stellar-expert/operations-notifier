@@ -1,16 +1,16 @@
 const checkAuth = require('./authorization-handler'),
     pkgInfo = require('../package'),
     {getPublicKey} = require('../util/signing'),
-    observer = require('../logic/observer'),
-    mongooseExtensions = require('../models/mongoose-extensions')
+    observer = require('../logic/observer')
 
 const moment = require('moment-timezone')
 
-function processResponse(promise, res) {
-    promise
+function processResponse(promiseOrData, res) {
+    if (!(promiseOrData instanceof Promise)) promiseOrData = Promise.resolve(promiseOrData)
+    promiseOrData
         .then(data => {
             if (!data) return res.status(200).end()
-            mongooseExtensions.serializeToResponse(data, res)
+            res.json(data)
         })
         .catch(e => {
             if (typeof e === 'object' || (e instanceof Error && e.status)) {
@@ -38,14 +38,15 @@ module.exports = function (app) {
     //get all subscriptions for current user
     app.get('/api/subscription', checkAuth, (req, res) => {
         observer.getActiveSubscriptions()
-            .then(all => mongooseExtensions.serializeToResponse(all.filter(s => s.user == req.user.id), res))
+            .then(all => all.filter(s => s.user == req.user.id))
+            .then(subscriptions=>processResponse(subscriptions))
     })
 
     //get subscription by id
     app.get('/api/subscription/:id', checkAuth, (req, res) => {
         observer.getSubscription(req.params.id)
             .then(subscription => {
-                if (subscription.user == req.user.id) return mongooseExtensions.serializeToResponse(subscription, res)
+                if (subscription.user == req.user.id) return processResponse(subscription, res)
                 res.status(404).json({error: `Subscription ${req.params.id} not found.`})
             })
     })

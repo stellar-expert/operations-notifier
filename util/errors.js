@@ -1,18 +1,3 @@
-const standardErrors = {
-    genericError: {
-        message: 'Error occurred. If this error persists, please contact our support team.',
-        code: 0
-    },
-    badRequest: {
-        message: 'Bad request.',
-        code: 400
-    },
-    notFound: {
-        message: 'Object not found.',
-        code: 404
-    }
-}
-
 function generateError({message, code}) {
     //todo: implement custom Error class with customized toString serialization which displays code and original message details
     let error = new Error(message)
@@ -22,7 +7,7 @@ function generateError({message, code}) {
 
 function withDetails(message, details) {
     if (!details) return message
-    return message + details
+    return message + ' ' + details
 }
 
 module.exports = {
@@ -38,17 +23,23 @@ module.exports = {
     },
     badRequest: function (details = null) {
         return generateError({
-            message: withDetails('Bad request. ', details),
+            message: withDetails('Bad request.', details),
             code: 400
         })
     },
-    validationError: function (invalidParamName, details = null) {
-        return this.badRequest(`Invalid parameter: ${invalidParamName}. `, details)
+    forbidden: function (details = null) {
+        return generateError({
+            message: withDetails('Forbidden.', details),
+            code: 403
+        })
     },
     notFound: function (details = null) {
         return generateError({
-            message: withDetails('Not found. ', details),
+            message: withDetails('Not found.', details),
             code: 404
         })
+    },
+    validationError: function (invalidParamName, details = null) {
+        return this.badRequest(`Invalid parameter: ${invalidParamName}.`, details)
     }
 }

@@ -1,5 +1,5 @@
 const {Keypair} = require('stellar-base'),
-    config = require('../server.config')
+    config = require('../app.config')
 
 const signingKeypair = Keypair.fromSecret(config.signatureSecret)
 

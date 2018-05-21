@@ -1,14 +1,12 @@
 {
   "authorization": "disabled",
-  "db": "mongodb://127.0.0.1:27017/stellar-notifier",
+  "storageProvider": "memory",
+  "storageConnectionString": "",
   "apiPort": 4021,
   "horizon": "https://horizon.stellar.org",
-  "stellarNetwork": "PUBLIC",
-  "stellarNetworkPassphrase": "",
   "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",
   "maxActiveSubscriptions": 10000,
-  "maxNotificationsCacheSize": 10000,
   "notificationConcurrency": 100,
-  "reactionResponseTimeout": 10,
+  "reactionResponseTimeout": 20,
   "adminAuthenticationToken": "98c12910bf35c79a800e9ea893a93b078ea92fc7a26ca76c0cd2f6003464d781"
 }
