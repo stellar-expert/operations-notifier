@@ -87,7 +87,7 @@ npm run start
 All configuration parameters are located in `app.config.json` file.
 
 - **storageProvider**\
-Storage provider for persistence layer.\
+Storage provider for persistence layer (see details in [Storage providers](#storage-providers) section).\
 Default value: `"memory"` 
 - **storageConnectionString**\
 Connection string for storage provider.\
@@ -98,7 +98,7 @@ Default value: `4021`
 - **authorization**\
 Server authorization mode.\
 `disabled` mode turns off the authentication (recommended for local installations).\
-`token` authentication expects `access_token` with user requests (see [API Authentication](#Authentication)).\
+`token` authentication expects `access_token` with user requests (see [API Authentication](#authentication)).\
 Default value: `"disabled"`.
 - **horizon**\
 Horizon server URL.\
