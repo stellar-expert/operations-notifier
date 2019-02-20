@@ -8,7 +8,8 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 - Highly configurable.
 - Supports operations filtering by account, asset, transaction memo, and operation type. 
 - Guaranteed delivery, even if the notification recipient or the Notifier itself is down for some time.
-- Support public and private Stellar networks.
+- Supports public and private Stellar networks.
+- Can be used as a shared microservice that streams events to multiple endpoints.
 - High performance (tested with thousands of subscriptions).
 - Reliable tracking and consistency (tracking is resumed from the same transaction after restart).
 - Does not require Stellar Core or Horizon node deployment.
