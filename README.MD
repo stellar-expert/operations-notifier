@@ -1,7 +1,7 @@
 # Stellar Notifier
 
 A standalone service that tracks Stellar Network operations and streams notifications to the subscribers. 
-The notifications are sent as JSON-encoded HTTP POST requests.  
+The notifications are sent as JSON-encoded HTTP POST requests. 
     
 ### Highlights
 
@@ -32,6 +32,8 @@ Subscribe to inflation operation and distribute rewards when the subscription wa
 > :warning: Note: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
 
 ## System requirements
+
+Docker image by [@sgehrman](https://github.com/sgehrman) can be found [here](https://github.com/StellarKit/stellar-notifier-docker).
 
 #### Stellar Horizon server
 
@@ -319,5 +321,6 @@ Have a suggestion? Want to submit a bug or feature request? Visit the [issue tra
 ## Special Thanks and Acknowledgements
 
 - Many thanks to [@MikeFair](https://github.com/MikeFair) for his prominent ideas.
+- To [@sgehrman](https://github.com/sgehrman) for Docker setup and bug reports.
 - Kudos to [Stellar Developer Foundation](https://github.com/stellar) for the state-of-the-art software and contemporary approach.   
 - And, as always, thanks to awesome Stellar Community for the support.
