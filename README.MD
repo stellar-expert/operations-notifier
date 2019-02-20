@@ -87,44 +87,56 @@ npm run start
 
 ## Configuration
 
-All configuration parameters are located in `app.config.json` file.
+All configuration parameters are located in `app.config.json` file. The server also supports setting parameters using 
+environment variables. By default the server loads settings from `app.config.json` file, and overwrites specific 
+parameter if the corresponding environment variable found. 
 
 - **storageProvider**\
 Storage provider for persistence layer (see details in [Storage providers](#storage-providers) section).\
-Default value: `"memory"` 
+Default value: `"memory"`\
+Env parameter: `STORAGE_PROVIDER`
 - **storageConnectionString**\
 Connection string for storage provider.\
-Default value: `""` 
+Default value: `""`\
+Env parameter: `STORAGE_CONNECTION_STRING`
 - **apiPort**\
 API exposed by the notifier.\
-Default value: `4021` 
+Default value: `4021`\
+Env parameter: `API_PORT`
+- **horizon**\
+Horizon server URL.\
+Default value: `"https://horizon.stellar.org"`.\
+Env parameter: `HORIZON`
+- **reactionResponseTimeout**\
+Maximum expected HTTP response timeout (in seconds). 
+If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
+Default value: `10`.\
+Env parameter: `REACTION_RESPONSE_TIMEOUT`
 - **authorization**\
 Server authorization mode.\
 `disabled` mode turns off the authentication (recommended for local installations).\
 `token` authentication expects `access_token` with user requests (see [API Authentication](#authentication)).\
-Default value: `"disabled"`.
-- **horizon**\
-Horizon server URL.\
-Default value: `"https://horizon.stellar.org"`.
-- **reactionResponseTimeout**\
-Maximum expected HTTP response timeout (in seconds). 
-If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
-Default value: `10`.
+Default value: `"disabled"`.\
+Env parameter: `AUTHORIZATION`
 - **adminAuthenticationToken**\
 API authentication token for admin user (for `"authentication"="token"` mode). 
 Leave empty to use a randomly generated token.\
-Default Value: `""`.
+Default Value: `""`.\
+Env parameter: `ADMIN_AUTHENTICATION_TOKEN`
 - **signatureSecret**\
 Secret key used to sign the notifications. Do not forget to set your own secret. 
 It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). 
 Do not use the default value or a secret key from the funded account.\
-Default value: `""`.
+Default value: `""`.\
+Env parameter: `SIGNATURE_SECRET`
 - **maxActiveSubscriptions**\
 Maximum simultaneously tracked subscriptions.\
-Default value: `10000`.
+Default value: `10000`.\
+Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS`
 - **notificationConcurrency**\
 Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
-Default value: `100`.
+Default value: `100`.\
+Env parameter: `NOTIFICATION_CONCURRENCY`
 
 #### Storage providers
 
