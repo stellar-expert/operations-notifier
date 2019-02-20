@@ -2,7 +2,7 @@
   "name": "stellar-notifier",
   "license": "MIT",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "orbitlens",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
@@ -24,23 +24,22 @@
     "node": ">=8.6.0"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "body-parser": "^1.18.2",
-    "cors": "^2.8.4",
-    "cross-env": "^5.0.1",
-    "debug": "^3.1.0",
-    "express": "^4.16.2",
+    "axios": "0.18.0",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
     "moment-duration-format": "^2.2.2",
-    "moment-timezone": "^0.5.16",
-    "mongoose": "^5.0.10",
-    "morgan": "^1.9.0",
-    "stellar-base": "^0.7.7",
-    "stellar-sdk": "^0.8.0",
+    "moment-timezone": "^0.5.23",
+    "mongoose": "^5.4.14",
+    "morgan": "^1.9.1",
+    "stellar-base": "^0.11.0",
+    "stellar-sdk": "^0.13.0",
     "throttleit": "^1.0.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "mocha": "^5.1.0",
-    "sinon": "^4.5.0"
+    "sinon": "^4.5.0",
+    "cross-env": "^5.2.0"
   }
 }
