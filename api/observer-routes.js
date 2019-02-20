@@ -1,9 +1,8 @@
 const checkAuth = require('./authorization-handler'),
     pkgInfo = require('../package'),
     {getPublicKey} = require('../util/signing'),
-    observer = require('../logic/observer')
-
-const moment = require('moment-timezone')
+    observer = require('../logic/observer'),
+    moment = require('moment-timezone')
 
 function processResponse(promiseOrData, res) {
     if (!(promiseOrData instanceof Promise)) promiseOrData = Promise.resolve(promiseOrData)
@@ -39,7 +38,7 @@ module.exports = function (app) {
     app.get('/api/subscription', checkAuth, (req, res) => {
         observer.getActiveSubscriptions()
             .then(all => all.filter(s => s.user == req.user.id))
-            .then(subscriptions=>processResponse(subscriptions))
+            .then(subscriptions => processResponse(subscriptions, res))
     })
 
     //get subscription by id
