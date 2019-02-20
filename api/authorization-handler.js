@@ -1,4 +1,4 @@
-const config = require('../app.config'),
+const config = require('../models/config'),
     storage = require('../logic/storage')
 
 const scheme = 'Token '

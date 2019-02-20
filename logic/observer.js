@@ -2,7 +2,7 @@ const errors = require('../util/errors'),
     TransactionWatcher = require('./transaction-watcher'),
     Notifier = require('./notifier'),
     storage = require('./storage'),
-    config = require('../app.config')
+    config = require('../models/config')
 
 /**
  *

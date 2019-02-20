@@ -1,5 +1,5 @@
 const {Server: HorizonServer} = require('stellar-sdk'),
-    config = require('../app.config')
+    config = require('../models/config')
 
 console.log(`Using Horizon server ${config.horizon}`)
 

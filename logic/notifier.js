@@ -1,5 +1,5 @@
 const axios = require('axios'),
-    config = require('../app.config'),
+    config = require('../models/config'),
     {sign} = require('../util/signing'),
     pkgInfo = require('../package'),
     storage = require('./storage')
