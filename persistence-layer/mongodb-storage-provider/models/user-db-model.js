@@ -2,12 +2,15 @@ const mongoose = require('mongoose'),
     Schema = mongoose.Schema
 
 const userSchema = new Schema({
-    email: {type: String, index: true},
-    admin: {type: Boolean, index: true},
-    authToken: {type: String, index: true},
-    created: {type: Date, default: Date.now},
-    updated: {type: Date, default: Date.now}
+    pubkey: {type: String, index: true, unique: true},
+    roles: {type: [String]},
+    nonce: {type: Number}
+},
+{
+    timestamps: {createdAt: 'created', updatedAt: 'updated'}
 })
+
+userSchema.set('toJSON', { getters: true })
 
 const User = mongoose.model('User', userSchema)
 

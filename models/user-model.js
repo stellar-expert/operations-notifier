@@ -1,14 +1,13 @@
 const Model = require('./base-model')
 
 class User extends Model {
-    email
-    admin
-    authToken
+    pubkey
+    roles
     created
     updated
 
     toJSON() {
-        return {email: this.email}
+        return {pubkey: this.pubkey}
     }
 }
 

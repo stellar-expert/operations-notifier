@@ -10,7 +10,7 @@ class SubscriptionModel extends Model {
     /**
      * Who created the subscription
      */
-    user
+    pubkey
     /**
      * Subscription status (0 - active, 1- deleted, 2-expired)
      */

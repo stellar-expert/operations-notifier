@@ -33,6 +33,12 @@ module.exports = {
             code: 403
         })
     },
+    unauthorized: function (details = null) {
+        return generateError({
+            message: withDetails('Unauthorized.', details),
+            code: 401
+        })
+    },
     notFound: function (details = null) {
         return generateError({
             message: withDetails('Not found.', details),

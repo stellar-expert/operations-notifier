@@ -2,9 +2,10 @@ const express = require('express'),
     logger = require('morgan'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
-    http = require('http')
+    http = require('http'),
+    auth = require('./authorization-handler')
 
-module.exports = function initializeServer(config) {
+module.exports = function (config) {
     //create Express server instance
     const app = express()
 
@@ -20,18 +21,21 @@ module.exports = function initializeServer(config) {
     //allow CORS requests
     app.use(cors())
 
+    app.all('*', auth.userMiddleware)
+
+    //register routes
+    require('./observer-routes')(app)
+    require('./user-routes')(app)
+
     // error handler
     app.use((err, req, res, next) => {
         if (err) console.error(err)
         if (res.headersSent) {
             return next(err)
         }
-        res.status(500).end()
+        let status = err ? err.code || 500 : 500
+        res.status(status).end()
     })
-
-    //register routes
-    require('./observer-routes')(app)
-    require('./user-routes')(app)
 
     function normalizePort(val) {
         let port = parseInt(val)
@@ -54,4 +58,6 @@ module.exports = function initializeServer(config) {
             bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
         console.log('Listening on ' + bind)
     })
+    server.app = app
+    return server
 }

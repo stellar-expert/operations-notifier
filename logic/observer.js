@@ -32,12 +32,19 @@ class Observer {
         return this.subscriptions.length
     }
 
+    getUserActiveSubscriptionsCount(user) {
+        return this.subscriptions.filter(s => s.pubkey === user.pubkey).length
+    }
+
     subscribe(subscriptionParams, user) {
         //TODO: prevent duplicate subscriptions by checking subscription hash (fields "account", "asset_type" etc.)
         //https://www.npmjs.com/package/farmhash
         return this.loadSubscriptions()
             .then(() => {
                 if (this.getActiveSubscriptionsCount() >= config.maxActiveSubscriptions) {
+                    return Promise.reject(errors.forbidden('Max active subscriptions exceeded.'))
+                }
+                if (config.authorization && this.getUserActiveSubscriptionsCount(user) >= config.maxUserActiveSubscriptions) {
                     return Promise.reject(errors.forbidden('Max active subscriptions exceeded.'))
                 }
                 return storage.createSubscription(subscriptionParams, user)

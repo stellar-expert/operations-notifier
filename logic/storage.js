@@ -1,8 +1,7 @@
 const {StrKey} = require('stellar-base'),
     BigNumber = require('bignumber.js'),
     {parseAsset} = require('../util/asset-helper'),
-    errors = require('../util/errors'),
-    generateToken = require('../util/auth-token-generator')
+    errors = require('../util/errors')
 
 let lastIngested,
     storageProviders = {
@@ -30,14 +29,12 @@ class Storage {
             provider = require(provider)
         }
         //initialize storage provider
-        this.provider = new provider(config)
+        this.provider = new provider()
+
         if (!(this.provider instanceof require('../persistence-layer/storage-provider'))) throw new TypeError('Invalid storage provider')
         console.log(`Using "${config.storageProvider}" storage provider.`)
-
-        //create default user
-        return this.provider.createDefaultAdminUser(config.adminAuthenticationToken || generateToken())
-            .then(admin => console.log('Administrator authentication token: ' + admin.authToken))
-            .catch(e => errors.handleSystemError(e))
+        
+        return this.provider.init(config)
     }
 
     /**
@@ -150,7 +147,7 @@ class Storage {
         }
 
         let subscription = {
-                user: user.id,
+                pubkey: user ? user.pubkey : null,
                 reaction_url: subscriptionParams.reaction_url
             },
             isValid = false

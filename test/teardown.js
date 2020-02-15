@@ -1,0 +1,3 @@
+after(() => {
+    server.shutdown()
+})

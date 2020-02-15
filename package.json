@@ -2,7 +2,7 @@
   "name": "stellar-notifier",
   "license": "MIT",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.3.1",
   "author": "orbitlens",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
@@ -12,7 +12,7 @@
     "url": "https://github.com/orbitlens/stellar-notifier"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development node ./app.js",
+    "dev": "cross-env NODE_ENV=development node --nolazy --inspect-brk=9229 ./app.js",
     "start": "cross-env NODE_ENV=production node ./app.js",
     "test": "cross-env NODE_ENV=test node_modules/.bin/mocha"
   },
@@ -34,10 +34,12 @@
     "morgan": "^1.9.1",
     "stellar-base": "^0.11.0",
     "stellar-sdk": "^0.13.0",
-    "throttleit": "^1.0.0"
+    "throttleit": "^1.0.0",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-http": "^4.2.0",
     "mocha": "^5.1.0",
     "sinon": "^4.5.0",
     "cross-env": "^5.2.0"

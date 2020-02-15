@@ -7,6 +7,10 @@ class StorageProvider {
         if (this.constructor === StorageProvider) throw new TypeError('Cannot create an instance of abstract StorageProvider class.')
     }
 
+    init(config) {
+        notImplemented()
+    }
+
     fetchSubscriptions() {
         notImplemented()
     }
@@ -27,19 +31,13 @@ class StorageProvider {
         notImplemented()
     }
 
+    removeAllSubscriptions() {
+        notImplemented()
+    }
+
     markAsProcessed(notification, subscription) {
         notImplemented()
     }
-
-    /**
-     * Create a default admin user if it doesn't exist
-     * @param {string} adminAuthenticationToken - last processed tx sequence
-     * @returns {Promise<User>}
-     */
-    createDefaultAdminUser(adminAuthenticationToken) {
-        notImplemented()
-    }
-
 
     /**
      * Retrieve last ingested tx sequence.
@@ -56,7 +54,6 @@ class StorageProvider {
      */
     updateLastIngestedTx(ingestedTxSequence) {
         notImplemented()
-
     }
 
     /**
@@ -67,7 +64,10 @@ class StorageProvider {
         notImplemented()
     }
 
-    getUserByAuthToken(authToken) {
+    /**
+     * @returns {UserProvider}
+     */
+    get userProvider() {
         notImplemented()
     }
 }

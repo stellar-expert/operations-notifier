@@ -133,6 +133,10 @@ Env parameter: `SIGNATURE_SECRET`
 Maximum simultaneously tracked subscriptions.\
 Default value: `10000`.\
 Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS`
+- **maxActiveSubscriptionsPerUser**\
+Maximum simultaneously tracked subscriptions per single user.\
+Default value: `100`.\
+Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS_PER_USER`
 - **notificationConcurrency**\
 Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
 Default value: `100`.\
@@ -168,8 +172,51 @@ Other storage providers can be easily connected through the standard interface.
 With `authorization` config parameter set to `disabled`, there is no need to bother about authentication. 
 But it only works in cases where the service is not exposed to public networks (i.e. behind the firewall).
 
-To enable token-based authentication, set `authorization` to `token`. In this mode, any interaction with protected API will require an authentication token. 
-The token can be passed as a POST parameter (`access_token=<your_token>`), GET query parameter (`?access_token=<your_token>`), or Authorization header (`Authorization: Token <your_token>`).
+To enable ed25519 authentication, set `authorization` to `enabled`. In this mode, any interaction with protected API will require an authorization header `Authorization: ed25519 <public_key>.<signature>`, where `public_key` is a ed25519 public key and `signature` is a serilalized in hex format cyrptographic signature of form-urlencoded request params. Please note, that all requests to protected API endpoints should contain `nonce` param and the value should be greater than in previous request.
+
+##### Example
+
+```
+const {
+    Keypair
+} = require('stellar-base')
+
+var objectToFormEncoding = function(object) {
+    if (!object)
+        return ''
+    return Object.keys(object).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(object[k])}`).join('&')
+}
+
+//GET request
+
+var payload = objectToFormEncoding({ 
+    nonce: Date.now(),
+    foo: 'foo'
+})
+var keyPair = new KeyPair('private_key')
+var signature = keyPair.sign(payload).toString('hex')
+
+var authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`
+var requestUrl = `<protected_api_endpoint>?${payload}`
+
+//set header and make request
+
+...
+
+//POST request
+
+var body = {
+    nonce: Date.now(),
+    foo: 'foo'
+}
+var keyPair = new KeyPair('private_key')
+var signature = keyPair.sign(objectToFormEncoding(body)).toString('hex')
+
+var authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`
+
+//set header, body and make request
+
+```
 
 ### Create subscription
 

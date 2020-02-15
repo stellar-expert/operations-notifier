@@ -1,6 +1,6 @@
 const axios = require('axios'),
     config = require('../models/config'),
-    {sign} = require('../util/signing'),
+    serverSigner = require('../util/server-signer'),
     pkgInfo = require('../package'),
     storage = require('./storage')
 
@@ -151,7 +151,7 @@ class Notifier {
                 'User-Agent': 'StellarNotifier/' + pkgInfo.version,
                 'Content-Type': 'application/json',
                 'X-Requested-With': `StellarNotifier/${pkgInfo.version} (+${pkgInfo.homepage})`,
-                'X-Request-ED25519-Signature': sign(data),
+                'X-Request-ED25519-Signature': serverSigner.sign(data, 'utf8', 'base64'),
                 'X-Subscription': subscription.id
             }
         })

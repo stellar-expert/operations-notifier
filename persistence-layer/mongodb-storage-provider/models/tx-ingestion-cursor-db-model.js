@@ -8,6 +8,8 @@ const txIngestionCursorSchema = new Schema({
     updated: {type: Date, default: Date.now}
 })
 
+txIngestionCursorSchema.set('toJSON', { getters: true })
+
 const TxIngestionCursor = mongoose.model('TxIngestionCursor', txIngestionCursorSchema)
 
 module.exports = TxIngestionCursor

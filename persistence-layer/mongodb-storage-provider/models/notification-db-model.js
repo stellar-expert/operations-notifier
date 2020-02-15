@@ -3,10 +3,13 @@ const mongoose = require('mongoose'),
 
 const notificationSchema = new Schema({
     payload: {type: Schema.Types.Mixed},
-    subscriptions: {type: [Schema.Types.ObjectId]}, //corresponding subscriptions
-    created: {type: Date, default: Date.now},
-    updated: {type: Date, default: Date.now}
+    subscriptions: {type: [Schema.Types.ObjectId]} //corresponding subscriptions
+},
+{
+    timestamps: {createdAt: 'created', updatedAt: 'updated'}
 })
+
+notificationSchema.set('toJSON', { getters: true })
 
 const Notification = mongoose.model('Notification', notificationSchema)
 
