@@ -1,11 +1,9 @@
 const config = require('../models/config'),
     storage = require('../logic/storage'),
     roles = require('../models/user/roles'),
-    signer = require('../util/signer'),
+    {verifySignature} = require('../util/signer'),
     errors = require('../util/errors'),
-    {
-        objectToFormEncoding
-    } = require('../util/form-url-encoding-helper')
+    {encodeUrlParams} = require('../util/url-encoder')
 
 const scheme = 'ed25519 '
 
@@ -44,25 +42,25 @@ function userMiddleware(req, res, next) {
 
     const [pubkey, signature] = token.split('.')
 
-    let payload = objectToFormEncoding(req.body),
-        nonce = Number(req.body.nonce)
+    let payload, nonce
     if (req.method === 'GET') {
         nonce = Number(req.query.nonce)
-        payload = objectToFormEncoding(req.query)
+        payload = encodeUrlParams(req.query)
+    } else {
+        payload = encodeUrlParams(req.body)
+        nonce = Number(req.body.nonce)
     }
 
     if (nonce && !isNaN(nonce) && payload) {
-        const userSigner = new signer(pubkey)
-        if (userSigner.verify(payload, signature)) {
+        if (verifySignature(pubkey, payload, signature)) {
             let userProvider = storage.provider.userProvider
             userProvider.getUserByPublicKey(pubkey)
                 .then(user => {
-                    if (user)
-                        return user
+                    if (user) return user
                     return userProvider.addUser({
-                            pubkey,
-                            roles: []
-                        })
+                        pubkey,
+                        roles: []
+                    })
                         .then(() => userProvider.getUserByPublicKey(pubkey))
                 })
                 .then(user => {
@@ -79,9 +77,7 @@ function userMiddleware(req, res, next) {
                     }
                     return Promise.resolve()
                 })
-                .then(() => {
-                    next()
-                })
+                .then(next)
         }
     }
 }

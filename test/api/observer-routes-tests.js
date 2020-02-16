@@ -1,13 +1,11 @@
-let chai = require('chai')
-let chaiHttp = require('chai-http')
-let config = require('../../models/config')
-const {
-    Keypair
-} = require('stellar-base')
-const roles = require('../../models/user/roles')
-const storage = require('../../logic/storage')
-const {objectToFormEncoding} = require('../../util/form-url-encoding-helper')
-let should = chai.should()
+const chai = require('chai'),
+    chaiHttp = require('chai-http'),
+    config = require('../../models/config'),
+    {Keypair} = require('stellar-sdk'),
+    roles = require('../../models/user/roles'),
+    storage = require('../../logic/storage'),
+    {encodeUrlParams} = require('../../util/url-encoder'),
+    should = chai.should()
 
 let subscriptions = null //will be filled later
 
@@ -36,9 +34,9 @@ if (config.authorization) {
 
         after(() => {
             Promise.all([
-                    storage.provider.userProvider.deleteAllUsers(),
-                    storage.provider.removeAllSubscriptions()
-                ])
+                storage.provider.userProvider.deleteAllUsers(),
+                storage.provider.removeAllSubscriptions()
+            ])
                 .then(() => {
                     return Promise.resolve()
                 })
@@ -72,7 +70,7 @@ if (config.authorization) {
                     nonce: nonce
                 }
 
-                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
+                const signature = signData(newUserKeyPair, encodeUrlParams(data))
 
                 chai.request(server.app)
                     .post('/api/subscription')
@@ -121,7 +119,7 @@ if (config.authorization) {
 
             it('it should GET all own subscriptions', (done) => {
 
-                const payload = objectToFormEncoding({nonce: Date.now()})
+                const payload = encodeUrlParams({nonce: Date.now()})
                 const signature = signData(newUserKeyPair, payload)
                 chai.request(server.app)
                     .get(`/api/subscription?${payload}`)
@@ -136,7 +134,7 @@ if (config.authorization) {
 
             it('it should fail to GET subscription by another\'s id', (done) => {
 
-                const payload = objectToFormEncoding({nonce: Date.now()})
+                const payload = encodeUrlParams({nonce: Date.now()})
                 const signature = signData(newUserKeyPair, payload)
 
                 const anothersSubs = subscriptions.find(s => s.pubkey !== newUserKeyPair.publicKey())
@@ -152,7 +150,7 @@ if (config.authorization) {
 
             it('it should GET own subscription by id', (done) => {
 
-                const payload = objectToFormEncoding({nonce: Date.now()})
+                const payload = encodeUrlParams({nonce: Date.now()})
                 const signature = signData(newUserKeyPair, payload)
 
                 const ownSubs = subscriptions.find(s => s.pubkey === newUserKeyPair.publicKey())

@@ -6,7 +6,7 @@ const {
 } = require('stellar-base')
 const roles = require('../../models/user/roles')
 const storage = require('../../logic/storage')
-const {objectToFormEncoding} = require('../../util/form-url-encoding-helper')
+const {encodeUrlParams} = require('../../util/url-encoder')
 let should = chai.should()
 
 chai.use(chaiHttp)
@@ -70,9 +70,9 @@ if (config.authorization) {
                     nonce: Date.now()
                 }
 
-                const signature = signData(adminKeyPair, objectToFormEncoding(newUser))
+                const signature = signData(adminKeyPair, encodeUrlParams(newUser))
 
-                
+
                 chai.request(server.app)
                     .post('/api/user')
                     .set('authorization', `${adminKeyPair.publicKey()}.${signature}`)
@@ -89,7 +89,7 @@ if (config.authorization) {
 
             it('it should GET all the users', (done) => {
 
-                const payload =  objectToFormEncoding({
+                const payload =  encodeUrlParams({
                      nonce: Date.now()
                 })
                 const signature = signData(adminKeyPair, payload)
@@ -107,7 +107,7 @@ if (config.authorization) {
 
             it('it should GET own user', (done) => {
 
-                const payload =  objectToFormEncoding({
+                const payload =  encodeUrlParams({
                     nonce: Date.now()
                })
                 const signature = signData(newUserKeyPair, payload)
@@ -129,7 +129,7 @@ if (config.authorization) {
 
                 const nonce = Date.now()
                 const data = {nonce}
-                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
+                const signature = signData(newUserKeyPair, encodeUrlParams(data))
 
                 chai.request(server.app)
                     .delete(`/api/user/${adminKeyPair.publicKey()}`)
@@ -145,7 +145,7 @@ if (config.authorization) {
 
                 const nonce = Date.now()
                 const data = {nonce}
-                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
+                const signature = signData(newUserKeyPair, encodeUrlParams(data))
 
                 chai.request(server.app)
                     .delete(`/api/user/${newUserKeyPair.publicKey()}`)

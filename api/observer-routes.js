@@ -1,5 +1,5 @@
 const pkgInfo = require('../package'),
-    serverSigner = require('../util/server-signer'),
+    {signer} = require('../util/signer'),
     observer = require('../logic/observer'),
     moment = require('moment-timezone'),
     auth = require('./authorization-handler'),
@@ -36,16 +36,15 @@ module.exports = function (app) {
     app.get('/api/status', (req, res) => res.json({
         version: pkgInfo.version,
         uptime: moment.duration(new Date() - started, 'milliseconds').format(),
-        publicKey: serverSigner.getPublicKey()
+        publicKey: signer.getPublicKey()
     }))
 
     //get all subscriptions for current user
     app.get('/api/subscription', auth.userRequiredMiddleware, (req, res) => {
         observer.getActiveSubscriptions()
             .then(all => {
-                if (auth.isInRole(req, roles.ADMIN))
-                    return all
-                return all.filter(s => s.pubkey == getUserPubKey(req))
+                if (auth.isInRole(req, roles.ADMIN)) return all
+                return all.filter(s => s.pubkey === getUserPubKey(req))
             })
             .then(subscriptions => processResponse(subscriptions, res))
     })
@@ -54,7 +53,7 @@ module.exports = function (app) {
     app.get('/api/subscription/:id', auth.userRequiredMiddleware, (req, res) => {
         observer.getSubscription(req.params.id)
             .then(subscription => {
-                if (subscription.pubkey == getUserPubKey(req)) return processResponse(subscription, res)
+                if (subscription.pubkey === getUserPubKey(req)) return processResponse(subscription, res)
                 res.status(404).json({
                     error: `Subscription ${req.params.id} not found.`
                 })

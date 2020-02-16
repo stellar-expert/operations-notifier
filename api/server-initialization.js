@@ -1,5 +1,4 @@
 const express = require('express'),
-    logger = require('morgan'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
     http = require('http'),
@@ -10,10 +9,10 @@ module.exports = function (config) {
     const app = express()
 
     //set basic Express settings
-
     app.disable('x-powered-by')
 
     if (process.env.NODE_ENV === 'development') {
+        const logger = require('morgan')
         app.use(logger('dev'))
     }
     app.use(bodyParser.json())
@@ -30,11 +29,8 @@ module.exports = function (config) {
     // error handler
     app.use((err, req, res, next) => {
         if (err) console.error(err)
-        if (res.headersSent) {
-            return next(err)
-        }
-        let status = err ? err.code || 500 : 500
-        res.status(status).end()
+        if (res.headersSent) return next(err)
+        res.status((err && err.code) || 500).end()
     })
 
     function normalizePort(val) {

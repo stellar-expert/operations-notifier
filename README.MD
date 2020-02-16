@@ -1,47 +1,54 @@
 # Stellar Notifier
 
-A standalone service that tracks Stellar Network operations and streams notifications to the subscribers. 
-The notifications are sent as JSON-encoded HTTP POST requests. 
+A standalone service that tracks Stellar Network operations and streams
+notifications to the subscribers. The notifications are delivered as
+JSON-encoded HTTP POST requests. 
     
 ### Highlights
 
 - Highly configurable.
-- Supports operations filtering by account, asset, transaction memo, and operation type. 
-- Guaranteed delivery, even if the notification recipient or the Notifier itself is down for some time.
+- Supports operations filtering by account, asset, transaction memo, and 
+operation type. 
+- Guaranteed delivery, even if the notification recipient or the Notifier itself
+is down for some time.
 - Supports public and private Stellar networks.
 - Can be used as a shared microservice that streams events to multiple endpoints.
-- High performance (tested with thousands of subscriptions).
-- Reliable tracking and consistency (tracking is resumed from the same transaction after restart).
+- Predictable performance – tested with thousands of subscriptions.
+- Reliable tracking and consistency (tracking is resumed from the same
+transaction after restart).
 - Does not require Stellar Core or Horizon node deployment.
-- Notifications are signed with an ED25519 secret key to protect the recipient from spoofing.
+- Notifications are signed with an ED25519 secret key to protect the recipient
+from spoofing.
 
 ### So... Where can I use it?
 
 - **Payment processing**.\
-Never miss a payment, even if a user decided to pay one week later, or you have some troubles with your server.
+Never miss a payment, even if a user decided to pay one week later, or you have
+some troubles with your server.
 - **Anchors and ICOs**.\
-Implement complex scenarios for your assets and track all user accounts. 
-Track all operations involving your asset to gather statistics or calculate dividends.
+Implement complex scenarios for your assets and track all user accounts. Track
+all operations involving your asset to gather statistics or calculate dividends.
 - **Trading platforms**.\
-Observe trading activity, aggregate market data, gather statistics, build market-making applications.
+Observe trading activity, aggregate market data, gather statistics, build
+market-making applications.
 - **Monitoring tools**.\
-Keep an eye on specific accounts or your favorite assets. Without pooling and other inefficient techniques.
+Keep an eye on specific accounts or your favorite assets. Without pooling and
+other inefficient techniques.
 - **Inflation pools**.\
-Subscribe to inflation operation and distribute rewards when the subscription was triggered.
+Subscribe to inflation operation and distribute rewards when the subscription
+was triggered.
 - And more...  
-
-> :warning: Note: The project is at the early alpha stage. Battle-test it in your local environment before using in production.
 
 ## System requirements
 
-Docker image by [@sgehrman](https://github.com/sgehrman) can be found [here](https://github.com/StellarKit/stellar-notifier-docker).
-
 #### Stellar Horizon server
 
-Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance 
-(like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance. 
-The latter option is preferable for production cases. 
-Nevertheless, public Horizon instances supported by SDF work just fine as well.
+Notifier relies on an event stream from Horizon server, so you'll need to choose
+a public Horizon service
+(like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or
+you own hosted Horizon instance. The latter option is preferable for production
+setups. Nevertheless, public Horizon instances supported by SDF and other
+community members work just fine as well.
 
 #### NodeJS 8.6.0+
 
@@ -51,19 +58,25 @@ The service requires NodeJS 8.6.0 or later.
 
 For the production deployment all notification queues are stored in the database.
 
-MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead. 
+MongoDB was selected as the most convenient option in terms of fast read/writes
+alongside with minimum memory/IO overhead. 
 
 #### Supported platforms
 
 Linux, Windows, MacOS.  
-Effectively all platforms where you can run NodeJS and MongoDB.    
+Effectively any other platforms where you can run NodeJS and MongoDB.
+
+#### Docker
+
+Docker image by [@sgehrman](https://github.com/sgehrman) can be found
+[here](https://github.com/StellarKit/stellar-notifier-docker).
 
 ## Installation
 
 1\. Clone the repository.
 
 ```
-git clone https://github.com/orbitlens/stellar-notifier
+git clone https://github.com/orbitlens/operations-notifier
 ```
 
 2\. Install required NPM packages.
@@ -75,9 +88,11 @@ npm i
 
 3\. (For production deployments)
 Ensure that MongoDB is running. 
-Download it [here](https://www.mongodb.com/download-center?jmp=nav#community) in case if it has not been installed yet.
+Download it [here](https://www.mongodb.com/download-center?jmp=nav#community)
+in case if it has not been installed yet.
 
-4\. Set configuration parameters in `app.config.json` (see [Configuration](#configuration) section).
+4\. Set configuration parameters in `app.config.json` (see
+[Configuration](#configuration) section).
 
 5\. Start the service.
 
@@ -87,12 +102,14 @@ npm run start
 
 ## Configuration
 
-All configuration parameters are located in `app.config.json` file. The server also supports setting parameters using 
-environment variables. By default the server loads settings from `app.config.json` file, and overwrites specific 
-parameter if the corresponding environment variable found. 
+All configuration parameters are located in `app.config.json` file.
+The server also supports setting parameters using environment variables.
+By default the server loads settings from `app.config.json` file, and
+overwrites specific parameter if the corresponding environment variable found. 
 
 - **storageProvider**\
-Storage provider for persistence layer (see details in [Storage providers](#storage-providers) section).\
+Storage provider for persistence layer (see details in
+[Storage providers](#storage-providers) section).\
 Default value: `"memory"`\
 Env parameter: `STORAGE_PROVIDER`
 - **storageConnectionString**\
@@ -109,13 +126,15 @@ Default value: `"https://horizon.stellar.org"`.\
 Env parameter: `HORIZON`
 - **reactionResponseTimeout**\
 Maximum expected HTTP response timeout (in seconds). 
-If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
+If the reaction URL takes more time to respond, the request is aborted and
+notification is marked as failed.\
 Default value: `10`.\
 Env parameter: `REACTION_RESPONSE_TIMEOUT`
 - **authorization**\
 Server authorization mode.\
 `disabled` mode turns off the authentication (recommended for local installations).\
-`token` authentication expects `access_token` with user requests (see [API Authentication](#authentication)).\
+`token` authentication expects `access_token` with user requests (see
+[API Authentication](#authentication)).\
 Default value: `"disabled"`.\
 Env parameter: `AUTHORIZATION`
 - **adminAuthenticationToken**\
@@ -134,70 +153,82 @@ Maximum simultaneously tracked subscriptions.\
 Default value: `10000`.\
 Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS`
 - **maxActiveSubscriptionsPerUser**\
-Maximum simultaneously tracked subscriptions per single user.\
+Maximum simultaneously tracked subscriptions per user.\
 Default value: `100`.\
 Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS_PER_USER`
 - **notificationConcurrency**\
-Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
+Maximum concurrent notification threads (effectively, it equals the maximum
+parallel pending HTTP requests).\
 Default value: `100`.\
 Env parameter: `NOTIFICATION_CONCURRENCY`
 
 #### Storage providers
 
-Notifier can store notification queues and operational information in the database or in memory. 
-The latter case is suited only for testing or cases without guaranteed delivery. 
+Notifier can store notification queues and operational information in the
+database or in memory. The latter option is suited only for testing or
+deployments without guaranteed delivery.
 
 There are two built-in storage providers: `mongodb` and `memory`.
-Other storage providers can be easily connected through the standard interface. 
+Other storage providers can be easily connected through the standard interface.
 
 #### Config example:
 
-    {
-      "authorization": "disabled",
-      "storageProvider": "mongodb",
-      "storageConnectionString": "mongodb://127.0.0.1:27017/stellar-notifier",
-      "apiPort": 4021,
-      "horizon": "https://horizon.stellar.org",
-      "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",
-      "maxActiveSubscriptions": 10000,
-      "notificationConcurrency": 100,
-      "reactionResponseTimeout": 10,
-      "adminAuthenticationToken": "98c12910bf35c79a800e9ea893a93b078ea92fc7a26ca76c0cd2f6003464d781"
-    }
+```
+{
+  "authorization": "disabled",
+  "storageProvider": "mongodb",
+  "storageConnectionString": "mongodb://127.0.0.1:27017/notifier",
+  "apiPort": 4021,
+  "horizon": "https://horizon.stellar.org",
+  "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",
+  "maxActiveSubscriptions": 10000,
+  "notificationConcurrency": 100,
+  "reactionResponseTimeout": 10,
+  "adminAuthenticationToken": "98c12910bf35c79a800e9ea893a93b078ea92fc7a26ca76c0cd2f6003464d781"
+}
+```
 
 ## API
 
 ### Authentication
 
-With `authorization` config parameter set to `disabled`, there is no need to bother about authentication. 
-But it only works in cases where the service is not exposed to public networks (i.e. behind the firewall).
+With `authorization` config parameter set to `disabled`, there is no need to
+bother about authentication. But it only works when the service is not exposed
+to public networks (i.e. behind the firewall).
 
-To enable ed25519 authentication, set `authorization` to `enabled`. In this mode, any interaction with protected API will require an authorization header `Authorization: ed25519 <public_key>.<signature>`, where `public_key` is a ed25519 public key and `signature` is a serilalized in hex format cyrptographic signature of form-urlencoded request params. Please note, that all requests to protected API endpoints should contain `nonce` param and the value should be greater than in previous request.
+To enable ed25519 authentication, set `authorization` parameter to `enabled`.
+In this mode, any interaction with API requires an authorization
+header `Authorization: ed25519 <public_key>.<signature>`, where `public_key` is
+a ed25519 public key and `signature` is a cryptographic signature of urlencoded
+request params serialized in hex format. Please note, that all requests to 
+API endpoints should contain `nonce` param and the value should be greater than
+in previous request.
 
 ##### Example
 
 ```
-const {
-    Keypair
-} = require('stellar-base')
+const {Keypair} = require('stellar-sdk')
 
-var objectToFormEncoding = function(object) {
-    if (!object)
-        return ''
-    return Object.keys(object).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(object[k])}`).join('&')
+//encode path components
+function encodeUriParams(object) {
+    if (!object) return ''
+    return Object.keys(object)
+        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(object[k])}`)
+        .join('&')
 }
 
 //GET request
 
-var payload = objectToFormEncoding({ 
+const payload = encodeUriParams({ 
     nonce: Date.now(),
     foo: 'foo'
 })
-var keyPair = new KeyPair('private_key')
-var signature = keyPair.sign(payload).toString('hex')
 
-var authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`
-var requestUrl = `<protected_api_endpoint>?${payload}`
+const keyPair = new KeyPair('private_key'),
+    signature = keyPair.sign(payload).toString('hex')
+
+const authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`,
+    requestUrl = `<protected_api_endpoint>?${payload}`
 
 //set header and make request
 
@@ -205,17 +236,17 @@ var requestUrl = `<protected_api_endpoint>?${payload}`
 
 //POST request
 
-var body = {
+const body = {
     nonce: Date.now(),
     foo: 'foo'
 }
-var keyPair = new KeyPair('private_key')
-var signature = keyPair.sign(objectToFormEncoding(body)).toString('hex')
 
-var authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`
+const keyPair = new KeyPair('private_key'),
+    signature = keyPair.sign(encodeUriParams(body)).toString('hex')
+
+const authHeader = `ed25519 ${keyPair.publicKey()}.${signature}`
 
 //set header, body and make request
-
 ```
 
 ### Create subscription
@@ -226,11 +257,13 @@ POST /api/subscription
 
 **Parameters**:
 
-- **reaction_url** [*string*] (mandatory) - a full URL that should be requested by notification
+- **reaction_url** [*string*] (mandatory) - a full URL that should be requested
+by notification
 - **account** [*string*] (optional) - an account address to track
 - **memo** [*string*] (optional) - expected transaction memo
 - **account** [*string*] (optional) - an account address to track
-- **asset_code** [*string*] (optional) - asset code to track (specify XLM and no issuer to track operations involving XLM)
+- **asset_code** [*string*] (optional) - asset code to track (specify XLM and no
+issuer to track operations involving XLM)
 - **asset_issuer** [*string*] (optional) - asset issuer to track
 - **operation_types** [*Array\<Number\>*] (optional) - operation types to track
 
@@ -263,7 +296,8 @@ The `id` value from response can be used to delete the subscription.
 DELETE /api/subscription/:subscription_id
 ```
 
-The endpoint returns 200 in case of successful unsubscription, and an error code otherwise.
+The endpoint returns 200 in case of successful unsubscription, and an error code
+otherwise.
 
 **Parameters**:
 
@@ -349,16 +383,12 @@ Notifications are sent as JSON-encoded POST requests with the following format:
 
 Request headers:
 
-- `X-Request-ED25519-Signature` – the ED25519 signature for the current notification body.
+- `X-Request-ED25519-Signature` – the ED25519 signature for the notification body.
 - `X-Subscription` – corresponding subscription id.
 
 ## Testing
 
-Well, there are almost no tests at this point. I'm working on adding comprehensive unit and integration test siutes. 
-
-Will be grateful for any help with it.
-
-Run all tests with 
+Run all tests (currently almost non existent) with 
 
 ```
 npm run test
@@ -368,19 +398,21 @@ npm run test
 
 The following features will be added in the nearest future:
 
-- Response validation for the flooding attacks prevention.
-- Implement other notification channels: email, messengers, etc.
-- Include not only transaction info, but also all operation effects.
-- Implement a multi-account support and basic acquiring to turn the service into a SAAS platform, so anyone could offer public SAAS notification services for some fee.
-- Add the ability to use environment variables instead of the configuration file.
-- Comprehensive comments and test suites.
-- Bulletproof errors processing and graceful SIGTERM handling.
+- [x] Response validation for the flooding attacks prevention.
+- [ ] Implement other notification channels: email, messengers, etc.
+- [ ] Multi-account support and basic acquiring to turn the service into a SAAS
+platform, so anyone could offer public SAAS notification services for some fee.
+- [x] The ability to use environment variables instead of the configuration file.
+- [ ] Comprehensive comments and test suites.
+- [ ] Bulletproof errors processing and graceful SIGTERM handling.
 
-Have a suggestion? Want to submit a bug or feature request? Visit the [issue tracker](https://github.com/orbitlens/stellar-notifier).  
+Have a suggestion? Want to submit a bug or feature request? Visit the 
+[issue tracker](https://github.com/orbitlens/stellar-notifier).
 
 ## Special Thanks and Acknowledgements
 
 - Many thanks to [@MikeFair](https://github.com/MikeFair) for his prominent ideas.
 - To [@sgehrman](https://github.com/sgehrman) for Docker setup and bug reports.
-- Kudos to [Stellar Developer Foundation](https://github.com/stellar) for the state-of-the-art software and contemporary approach.   
+- Kudos to [Stellar Developer Foundation](https://github.com/stellar) for the
+state-of-the-art software and contemporary approach.
 - And, as always, thanks to awesome Stellar Community for the support.

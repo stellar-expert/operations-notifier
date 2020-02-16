@@ -4,6 +4,7 @@
   "storageConnectionString": "",
   "apiPort": 4021,
   "horizon": "https://horizon.stellar.org",
+  "networkPassphrase": "Public Global Stellar Network ; September 2015",
   "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",
   "maxActiveSubscriptions": 10000,
   "maxActiveSubscriptionsPerUser": 100,

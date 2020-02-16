@@ -1,4 +1,4 @@
-const {StrKey} = require('stellar-base'),
+const {StrKey} = require('stellar-sdk'),
     BigNumber = require('bignumber.js'),
     {parseAsset} = require('../util/asset-helper'),
     errors = require('../util/errors')
@@ -33,7 +33,7 @@ class Storage {
 
         if (!(this.provider instanceof require('../persistence-layer/storage-provider'))) throw new TypeError('Invalid storage provider')
         console.log(`Using "${config.storageProvider}" storage provider.`)
-        
+
         return this.provider.init(config)
     }
 

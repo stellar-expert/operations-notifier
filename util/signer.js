@@ -1,11 +1,12 @@
-const {Keypair} = require('stellar-base')
+const {Keypair} = require('stellar-sdk'),
+    config = require('../models/config')
 
 function processSigningData(dataToSign) {
-    if (!dataToSign) 
+    if (!dataToSign)
         throw new TypeError('Invalid data')
-    if (typeof dataToSign === 'object') 
+    if (typeof dataToSign === 'object')
         dataToSign = JSON.stringify(dataToSign)
-    if (typeof dataToSign !== 'string') 
+    if (typeof dataToSign !== 'string')
         throw new TypeError('Invalid data. Expected string or plain object.')
     return dataToSign
 }
@@ -18,9 +19,9 @@ function deserializeSignature(signature) {
     return res
 }
 
-class Signer {
+class ServerSigner {
     /**
-     * 
+     *
      * @param {String} keysource Public key or secret
      */
     constructor(keysource) {
@@ -46,9 +47,9 @@ class Signer {
 
     /**
      * Sign the data with a secret key.
-     * @param {String|Object} data - data to sign
-     * @param {String} dataEncoding - data encoding. Default: utf8
-     * @param {String} signatureEncoding - signature encoding. Default: hex
+     * @param {String|Object} data - Data to sign.
+     * @param {String} dataEncoding - Data encoding. Default: 'utf8'.
+     * @param {String} signatureEncoding - Signature encoding. Default: 'hex'.
      * @returns {String}
      */
     sign(data, dataEncoding = 'utf8', signatureEncoding = 'hex') {
@@ -56,21 +57,25 @@ class Signer {
             throw new Error('You can\'t sign data')
         return this.signingKeypair.sign(Buffer.from(processSigningData(data), dataEncoding)).toString(signatureEncoding)
     }
-
-    /**
-     * Verify the signature.
-     * @param {String|Object} data - encoded message data
-     * @param {String} signature - encoded message signature
-     * @param {String} dataEncoding - message data encoding. Default: utf8
-     * @param {String} signatureEncoding - signature encoding. Default: hex
-     * @returns {boolean}
-     */
-    verify(data, signature, dataEncoding = 'utf8', signatureEncoding = 'hex') {
-        const dataBuffer = Buffer.from(processSigningData(data), dataEncoding)
-        const signatureBuffer = Buffer.from(signature, signatureEncoding)
-
-        return this.signingKeypair.verify(dataBuffer, signatureBuffer)
-    }
 }
 
-module.exports = Signer
+/**
+ * Verify provided signature.
+ * @param {String} publicKey - Signer public key.
+ * @param {String|Object} data - Encoded message data.
+ * @param {String} signature - Encoded message signature.
+ * @param {String} dataEncoding - Message data encoding. Default: 'utf8'.
+ * @param {String} signatureEncoding - Signature encoding. Default: 'hex'.
+ * @returns {boolean}
+ */
+function verifySignature(publicKey, data, signature, dataEncoding = 'utf8', signatureEncoding = 'hex') {
+    const keypair = Keypair.fromPublicKey(publicKey),
+        dataBuffer = Buffer.from(processSigningData(data), dataEncoding),
+        signatureBuffer = Buffer.from(signature, signatureEncoding)
+
+    return keypair.verify(dataBuffer, signatureBuffer)
+}
+
+const signer = new ServerSigner(config.signatureSecret)
+
+module.exports = {signer, ServerSigner, verifySignature}

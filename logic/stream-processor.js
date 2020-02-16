@@ -1,6 +1,7 @@
-const {Transaction} = require('stellar-base'),
+const {Transaction} = require('stellar-sdk'),
     BigNumber = require('bignumber.js'),
-    {parseAsset, nativeAsset} = require('../util/asset-helper')
+    {parseAsset, nativeAsset} = require('../util/asset-helper'),
+    {networkPassphrase} = require('../models/config')
 
 function normalizeAsset(asset) {
     if (!asset) return null
@@ -34,29 +35,52 @@ function normalizeOperation(operation) {
                 amount: operation.amount
             }
         case 'pathPayment':
+        case 'pathPaymentStrictReceive':
             return {
                 type_i: 2,
-                type: 'path_payment',
+                type: 'path_payment_strict_receive',
                 asset: normalizeAsset(operation.destAsset),
                 amount: operation.destAmount,
                 source_asset: normalizeAsset(operation.sendAsset),
                 source_max: normalizeAsset(operation.sendMax),
                 path: operation.path.map(asset => normalizeAsset(asset))
             }
+        case 'pathPaymentStrictSend':
+            return {
+                type_i: 13,
+                type: 'path_payment_strict_send',
+                asset: normalizeAsset(operation.destAsset),
+                amount: operation.destAmount,
+                source_asset: normalizeAsset(operation.sendAsset),
+                dest_min: normalizeAsset(operation.destMin),
+                path: operation.path.map(asset => normalizeAsset(asset))
+            }
         case 'manageOffer':
+        case 'manageSellOffer':
             return {
                 type_i: 3,
-                type: 'manage_offer',
+                type: 'manage_sell_offer',
                 asset: normalizeAsset(operation.buying),
                 amount: operation.amount,
                 source_asset: normalizeAsset(operation.selling),
                 price: operation.price,
-                offerId: operation.offerId || 0
+                offerId: operation.offerId || '0'
+            }
+        case 'manageBuyOffer':
+            return {
+                type_i: 12,
+                type: 'manage_sell_offer',
+                asset: normalizeAsset(operation.buying),
+                amount: operation.buyAmount ,
+                source_asset: normalizeAsset(operation.selling),
+                price: operation.price,
+                offerId: operation.offerId || '0'
             }
         case 'createPassiveOffer':
+        case 'createPassiveSellOffer':
             return {
                 type_i: 4,
-                type: 'create_passive_offer',
+                type: 'create_passive_sell_offer',
                 asset: normalizeAsset(operation.buying),
                 amount: operation.amount,
                 source_asset: normalizeAsset(operation.selling),
@@ -118,7 +142,8 @@ function normalizeOperation(operation) {
         case 'bumpSequence':
             return {
                 type: 'bump_sequence',
-                type_i: 11
+                type_i: 11,
+                bump_to: operation.bumpTo
             }
     }
 }
@@ -164,9 +189,8 @@ function processMemo(rawMemo) {
 function parseTransaction(transaction) {
     let xdrTx
     try {
-        xdrTx = new Transaction(transaction.envelope_xdr)
-    }
-    catch (e) {
+        xdrTx = new Transaction(transaction.envelope_xdr, networkPassphrase)
+    } catch (e) {
         console.error(e)
         console.error('Tx envelope: ' + transaction.envelope_xdr)
         return null

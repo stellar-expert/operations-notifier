@@ -1,9 +1,9 @@
 {
-  "name": "stellar-notifier",
+  "name": "@stellar-expert/operations-notifier",
   "license": "MIT",
   "private": true,
-  "version": "0.3.1",
-  "author": "orbitlens",
+  "version": "0.4.0",
+  "author": "orbitlens<orbit.lens@stellar.expert>",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
   "homepage": "https://github.com/orbitlens/stellar-notifier",
@@ -12,36 +12,36 @@
     "url": "https://github.com/orbitlens/stellar-notifier"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development node --nolazy --inspect-brk=9229 ./app.js",
+    "dev": "cross-env NODE_ENV=development node ./app.js",
     "start": "cross-env NODE_ENV=production node ./app.js",
     "test": "cross-env NODE_ENV=test node_modules/.bin/mocha"
   },
   "keywords": [
     "stellar",
+    "payments",
     "notifier"
   ],
   "engines": {
     "node": ">=8.6.0"
   },
   "dependencies": {
-    "axios": "0.18.0",
-    "body-parser": "^1.18.3",
+    "axios": "0.19.2",
+    "body-parser": "^1.19.0",
+    "cross-env": "^7.0.0",
     "cors": "^2.8.5",
-    "express": "^4.16.4",
-    "moment-duration-format": "^2.2.2",
-    "moment-timezone": "^0.5.23",
-    "mongoose": "^5.4.14",
-    "morgan": "^1.9.1",
-    "stellar-base": "^0.11.0",
-    "stellar-sdk": "^0.13.0",
+    "express": "^4.17.1",
+    "moment-duration-format": "^2.3.2",
+    "moment-timezone": "^0.5.27",
+    "mongoose": "^5.9.1",
+    "stellar-sdk": "^4.0.0",
     "throttleit": "^1.0.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.2.0",
-    "mocha": "^5.1.0",
-    "sinon": "^4.5.0",
-    "cross-env": "^5.2.0"
+    "mocha": "^7.0.1",
+    "morgan": "^1.9.1",
+    "sinon": "^8.1.1"
   }
 }
