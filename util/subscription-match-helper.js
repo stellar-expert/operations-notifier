@@ -17,6 +17,4 @@ function matches(subscription, operation) {
     return true
 }
 
-module.exports = {
-    matches
-}
+module.exports = {matches}

@@ -3,6 +3,23 @@ const {horizon} = require('./stellar-connector'),
     {matches} = require('../util/subscription-match-helper'),
     storage = require('./storage')
 
+const transactionsBatchSize = 200
+
+function fetchTransactions(cursor, ledgerSequence = undefined) {
+    let builder = horizon
+        .transactions()
+    if (ledgerSequence !== undefined) {
+        builder = builder.forLedger(ledgerSequence)
+    }
+    if (cursor !== undefined) {
+        builder = builder.cursor(cursor)
+    }
+    return builder
+        .order('asc')
+        .limit(transactionsBatchSize)
+        .call()
+}
+
 /**
  * Tracks transactions using event streaming from Horizon server
  */
@@ -108,17 +125,12 @@ class TransactionWatcher {
         if (!this.cursor || this.cursor === '0') return this.trackLiveStream()
 
         //check previously set cursor
-        horizon
-            .transactions()
-            .cursor(this.cursor)
-            .order('asc')
-            .limit(200)
-            .call()
-            .then(transactions => {
-                if (!transactions.records || !transactions.records.length) {
+        fetchTransactions(this.cursor)
+            .then(({records}) => {
+                if (!records || !records.length) {
                     this.trackLiveStream()
                 } else {
-                    this.enqueue(transactions.records)
+                    this.enqueue(records)
                     setImmediate(() => this.trackTransactions())
                 }
             })
@@ -126,6 +138,7 @@ class TransactionWatcher {
                 console.error(err)
                 this.stopWatching() //TODO: add bulletproof error handling with resume on error
             })
+
     }
 
     /**
@@ -134,10 +147,33 @@ class TransactionWatcher {
     trackLiveStream() {
         //subscribe to transactions live stream
         this.releaseStream = horizon
-            .transactions()
+            .ledgers()
             .order('asc')
             .cursor('now')
-            .stream({onmessage: (rawTx) => this.enqueue([rawTx])})
+            .stream({
+                onmessage: (rawLedger) => {
+                    this.loadLedgerTransactions(rawLedger.sequence)
+                    //this.enqueue([rawTx])
+                }
+            })
+    }
+
+    loadLedgerTransactions(sequence, txCursor) {
+        return new Promise((resolve, reject) => {
+            const fetchLedgerTxBatch = () => {
+                fetchTransactions(txCursor, sequence)
+                    .then(({records}) => {
+                        if (!records || !records.length) return resolve()
+                        this.enqueue(records)
+                        const fetchedCount = records.length
+                        if (fetchedCount < transactionsBatchSize) return resolve() //saves one call when we are sure that we fetched the last batch
+                        fetchLedgerTxBatch(records[fetchedCount - 1].paging_token)
+                    })
+                    .catch(e => reject(e))
+            }
+            fetchLedgerTxBatch(txCursor)
+        })
+
     }
 
     /**

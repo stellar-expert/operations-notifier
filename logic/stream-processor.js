@@ -1,7 +1,6 @@
 const {Transaction} = require('stellar-sdk'),
     BigNumber = require('bignumber.js'),
-    {parseAsset, nativeAsset} = require('../util/asset-helper'),
-    {networkPassphrase} = require('../models/config')
+    {parseAsset, nativeAsset} = require('../util/asset-helper')
 
 function normalizeAsset(asset) {
     if (!asset) return null
@@ -189,7 +188,7 @@ function processMemo(rawMemo) {
 function parseTransaction(transaction) {
     let xdrTx
     try {
-        xdrTx = new Transaction(transaction.envelope_xdr, networkPassphrase)
+        xdrTx = new Transaction(transaction.envelope_xdr, '')
     } catch (e) {
         console.error(e)
         console.error('Tx envelope: ' + transaction.envelope_xdr)

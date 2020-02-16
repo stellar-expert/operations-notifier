@@ -75,6 +75,7 @@ module.exports = function (app) {
     app.put('/api/subscription', (req, res) => res.status(405).json({
         error: 'Subscription cannot be modified'
     }))
+
     app.put('/api/subscription/:id', (req, res) => res.status(405).json({
         error: 'Subscription cannot be modified'
     }))
