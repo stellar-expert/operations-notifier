@@ -1,4 +1,4 @@
-# Stellar Notifier
+# Stellar Operations Notifier
 
 A standalone service that tracks Stellar Network operations and streams
 notifications to the subscribers. The notifications are delivered as
@@ -76,13 +76,13 @@ Docker image by [@sgehrman](https://github.com/sgehrman) can be found
 1\. Clone the repository.
 
 ```
-git clone https://github.com/orbitlens/operations-notifier
+git clone https://github.com/stellar-expert/operations-notifier
 ```
 
 2\. Install required NPM packages.
 
 ```
-cd stellar-notifier
+cd operations-notifier
 npm i
 ```
 
@@ -398,16 +398,16 @@ npm run test
 
 The following features will be added in the nearest future:
 
+- [x] The ability to use environment variables instead of the configuration file.
 - [x] Response validation for the flooding attacks prevention.
 - [ ] Implement other notification channels: email, messengers, etc.
 - [ ] Multi-account support and basic acquiring to turn the service into a SAAS
 platform, so anyone could offer public SAAS notification services for some fee.
-- [x] The ability to use environment variables instead of the configuration file.
 - [ ] Comprehensive comments and test suites.
 - [ ] Bulletproof errors processing and graceful SIGTERM handling.
 
 Have a suggestion? Want to submit a bug or feature request? Visit the 
-[issue tracker](https://github.com/orbitlens/stellar-notifier).
+[issue tracker](https://github.com/stellar-expert/operations-notifier/issues).
 
 ## Special Thanks and Acknowledgements
 

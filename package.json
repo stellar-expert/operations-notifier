@@ -6,13 +6,13 @@
   "author": "orbitlens<orbit.lens@stellar.expert>",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
-  "homepage": "https://github.com/orbitlens/stellar-notifier",
+  "homepage": "https://github.com/stellar-expert/operations-notifier",
   "repository": {
     "type": "git",
-    "url": "https://github.com/orbitlens/stellar-notifier"
+    "url": "https://github.com/stellar-expert/operations-notifier"
   },
   "bugs": {
-    "url": "https://github.com/orbitlens/stellar-notifier/issues",
+    "url": "https://github.com/stellar-expert/operations-notifier/issues",
     "email": "orbit.lens@gmail.com"
   },
   "scripts": {
