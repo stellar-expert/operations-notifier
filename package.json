@@ -2,7 +2,7 @@
   "name": "@stellar-expert/operations-notifier",
   "license": "MIT",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.4.2",
   "author": "orbitlens<orbit.lens@stellar.expert>",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
@@ -11,10 +11,15 @@
     "type": "git",
     "url": "https://github.com/orbitlens/stellar-notifier"
   },
+  "bugs": {
+    "url": "https://github.com/orbitlens/stellar-notifier/issues",
+    "email": "orbit.lens@gmail.com"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development node ./app.js",
     "start": "cross-env NODE_ENV=production node ./app.js",
-    "test": "cross-env NODE_ENV=test node_modules/.bin/mocha"
+    "test": "cross-env NODE_ENV=test node_modules/.bin/mocha",
+    "preversion": "npm test"
   },
   "keywords": [
     "stellar",
@@ -30,8 +35,6 @@
     "cross-env": "^7.0.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.27",
     "mongoose": "^5.9.1",
     "stellar-sdk": "^4.0.0",
     "throttleit": "^1.0.0",
@@ -39,7 +42,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "chai-http": "^4.2.0",
+    "chai-http": "^4.3.0",
     "mocha": "^7.0.1",
     "morgan": "^1.9.1",
     "sinon": "^8.1.1"

@@ -72,10 +72,8 @@ function userMiddleware(req, res, next) {
                                         pubkey: user.pubkey,
                                         roles: user.roles
                                     }
-                                return Promise.resolve()
                             })
                     }
-                    return Promise.resolve()
                 })
                 .then(next)
         }

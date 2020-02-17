@@ -62,7 +62,7 @@ class Notifier {
                 if (!notification) {
                     subscription.processed = true //no more notifications available, set "processed" flag
                     this.inProgress.delete(subscription.id)
-                    return Promise.resolve()
+                    return
                 }
                 return this.sendNotification(notification, subscription)
                     .then(() => {

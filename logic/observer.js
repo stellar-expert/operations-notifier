@@ -23,6 +23,7 @@ class Observer {
         this.__loadingSubscriptionPromise = storage.fetchSubscriptions()
             .then(fetched => {
                 this.subscriptions = fetched || []
+                this.__loadingSubscriptionPromise = undefined
                 return this.subscriptions
             })
         return this.__loadingSubscriptionPromise

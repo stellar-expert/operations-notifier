@@ -1,4 +1,4 @@
-const {signer} = require('../../util/signer')
+const {verifySignature, signer} = require('../../util/signer')
 
 describe('signer.sign', function () {
     it('fails to sign an empty data', function () {
@@ -6,9 +6,9 @@ describe('signer.sign', function () {
     })
 
     it('signs the data', function () {
-        let data = new Date().toJSON(),
+        const data = new Date().toJSON(),
             signature = signer.sign(data, 'utf8', 'base64')
         expect(signature.length).to.equal(88)
-        expect(signer.verify(data, signature, 'utf8', 'base64')).to.be.true
+        expect(verifySignature(signer.getPublicKey(), data, signature, 'utf8', 'base64')).to.be.true
     })
 })

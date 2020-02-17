@@ -16,7 +16,7 @@ class MemoryUserProvider extends UserProvider {
     }
 
     _addUser(user) {
-        let _user = {
+        const _user = {
             pubkey: user.pubkey,
             roles: user.roles || [],
             nonce: user.nonce || 0
@@ -41,9 +41,8 @@ class MemoryUserProvider extends UserProvider {
     }
 
     updateNonce(id, nonce) {
-        let user = this.getUserById(id)
-        if (!user)
-            return false
+        const user = this.getUserById(id)
+        if (!user) return Promise.resolve(false)
         user.nonce = nonce
         return Promise.resolve(true)
     }
@@ -54,7 +53,7 @@ class MemoryUserProvider extends UserProvider {
     }
 
     _deleteUserById(id) {
-        let pos = this.repository.users.indexOf(id)
+        const pos = this.repository.users.indexOf(id)
         if (pos >= 0) {
             this.repository.users.splice(pos, 1)
         }

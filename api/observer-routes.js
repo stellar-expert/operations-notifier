@@ -1,7 +1,7 @@
 const pkgInfo = require('../package'),
     {signer} = require('../util/signer'),
     observer = require('../logic/observer'),
-    moment = require('moment-timezone'),
+    {elapsed} = require('../util/elapsed-time'),
     auth = require('./authorization-handler'),
     roles = require('../models/user/roles')
 
@@ -35,7 +35,7 @@ module.exports = function (app) {
     //get application status
     app.get('/api/status', (req, res) => res.json({
         version: pkgInfo.version,
-        uptime: moment.duration(new Date() - started, 'milliseconds').format(),
+        uptime: elapsed(new Date(), started),
         publicKey: signer.getPublicKey()
     }))
 

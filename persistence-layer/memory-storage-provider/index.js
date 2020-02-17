@@ -20,7 +20,7 @@ class MemoryStorageProvider extends StorageProvider {
     constructor() {
         super()
     }
-    
+
     init(config) {
         return Promise.resolve()
     }
@@ -50,7 +50,7 @@ class MemoryStorageProvider extends StorageProvider {
 
     removeNotification(notification) {
         ensureId(notification)
-        let index = repository.notifications.indexOf(notification)
+        const index = repository.notifications.indexOf(notification)
         if (index >= 0) {
             repository.notifications.splice(index, 1)
         }
@@ -58,7 +58,7 @@ class MemoryStorageProvider extends StorageProvider {
     }
 
     markAsProcessed(notification, subscription) {
-        let pos = notification.subscriptions.indexOf(subscription.id)
+        const pos = notification.subscriptions.indexOf(subscription.id)
         if (pos >= 0) {
             notification.subscriptions.splice(pos, 1)
         }
