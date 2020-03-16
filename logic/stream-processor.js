@@ -198,6 +198,8 @@ function parseTransaction(transaction) {
     const txDetails = {
         hash: transaction.hash,
         fee: xdrTx.fee,
+        fee_charged:transaction.fee_charged,
+        max_fee:transaction.max_fee,
         source: xdrTx.source,
         paging_token: transaction.paging_token,
         source_account_sequence: transaction.source_account_sequence,

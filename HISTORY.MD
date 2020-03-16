@@ -1,3 +1,8 @@
+0.4.4 / 2020-03-16
+==================
+
+* Adding fee_charged and max_fee fields to the stream procesor
+
 0.4.2 / 2020-02-16
 ==================
 
