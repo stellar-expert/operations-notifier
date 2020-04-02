@@ -97,6 +97,20 @@ class MongoDBStorageProvider extends StorageProvider {
     get userProvider() {
         return new MongoUserProvider()
     }
+
+    finalize(){
+        
+        return new Promise ((resolve, reject) => {
+            mongoose.disconnect(function(err,response){
+                
+                if (err){
+                    reject(err)
+                }   
+
+                resolve(response)
+            })
+        });    
+    }
 }
 
 module.exports = MongoDBStorageProvider

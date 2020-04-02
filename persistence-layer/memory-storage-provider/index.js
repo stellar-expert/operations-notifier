@@ -91,6 +91,10 @@ class MemoryStorageProvider extends StorageProvider {
     get userProvider() {
         return new MemoryUserProvider(this, repository)
     }
+
+    finalize(){
+        return Promise.resolve()
+    }
 }
 
 module.exports = MemoryStorageProvider

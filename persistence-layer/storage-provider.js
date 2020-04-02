@@ -70,6 +70,14 @@ class StorageProvider {
     get userProvider() {
         notImplemented()
     }
+
+    /**
+     * Method to stop the storage provider
+     */
+
+    finalize() {
+        notImplemented()
+    }
 }
 
 module.exports = StorageProvider

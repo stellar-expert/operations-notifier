@@ -130,6 +130,14 @@ class Storage {
     }
 
     /**
+     * Stops the provider
+     */
+
+    finalize(){
+        return this.provider.finalize()
+    }
+
+    /**
      * Create a subscription from request.
      * @param {Object} subscriptionParams - subscriptions filter params
      * @param {User} user - subscription owner
@@ -214,6 +222,8 @@ class Storage {
     static registerStorageProvider(providerName, provider) {
         storageProviders[providerName] = provider
     }
+
+    
 }
 
 module.exports = new Storage()
